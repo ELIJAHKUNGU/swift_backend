@@ -12,7 +12,7 @@ exports.doCreateUser = async (firstName, secondName, userEmail, userPhone, passw
             if (err) {
                 console.log(err);
             }
-            const user = new userModel({ firstName: firstName, lastName: secondName, userEmail: userEmail, password: pinHashed, role: "Customer", userPhone: userPhone, address: "0000", city: "Lusaka", state: "Lusaka", zipCode: "0000", country: "Zambia", defaultCurrency: "ZMW", defaultBusiness: "0000" });
+            const user = new userModel({ firstName: firstName, lastName: secondName, userEmail: userEmail, password: pinHashed, role: "Customer", phoneNumber: userPhone, address: "0000", city: "Lusaka", state: "Lusaka", zipCode: "0000", country: "Zambia", defaultCurrency: "ZMW", defaultBusiness: "0000" });
             user.save()
                 .then(async result => {
                     //  res.status(200).json({ message: 'User created successfully', result: result });
@@ -32,7 +32,7 @@ exports.doCreateUser = async (firstName, secondName, userEmail, userPhone, passw
                             userId: result._id
                         }
                         await doCreateCustomer(customerData, req, res);
-                        res.status(200).json({ message: 'Customer created successfully', result: result });
+                        res.status(200).json({ message: 'Customer created successfully', firstName: result.firstName, lastName: result.lastName, userEmail: result.userEmail, userPhone: result.userPhone});
     
                     }else if(type === "admin"){
                         res.status(200).json({ message: 'Admin created successfully', result: result });

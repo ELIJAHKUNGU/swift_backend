@@ -2,19 +2,22 @@ const router = require('express').Router();
 const userModel = require('../models/user')
 // const crypto = require("crypto-js");
 const jwt = require("jsonwebtoken");
+const bcrypt = require('bcrypt');
+
 
 const { doCreateUser } = require('../helperfunctions/auth');
+const { doCreateCustomer } = require('../helperfunctions/customerHelpers');
 exports.RegisterUser = async (req, res) => {
-   const {firstName,secondName, userEmail,userPhone, password, type } = req.body;
-   
+    const { firstName, secondName, userEmail, userPhone, password, type } = req.body;
+
 
     try {
         let userPhoneExist = await userModel.findOne({ userPhone });
-        if(userPhoneExist) return res.status(400).json({error: `User with phonenumber  ${userPhone} already exists ...`});
+        if (userPhoneExist) return res.status(400).json({ error: `User with phonenumber  ${userPhone} already exists ...` });
         let userEmailExist = await userModel.findOne({ userEmail });
-        if(userEmailExist) return res.status(400).json({error: `User with email ${userEmail} already exists ...`});
+        if (userEmailExist) return res.status(400).json({ error: `User with email ${userEmail} already exists ...` });
 
-        const createUser = await doCreateUser(firstName,secondName, userEmail,userPhone, password, type ,req, res);
+        const createUser = await doCreateUser(firstName, secondName, userEmail, userPhone, password, type, req, res);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -22,63 +25,35 @@ exports.RegisterUser = async (req, res) => {
 
 };
 
-// exports.sendOtpCode = async (req, res) => {
-// };
-// //login user
-// exports.LoginUser =  async (req, res) => {
-//     try {
-//         const user = await userModel.findOne({ email: req.body.email });
-//         if (!user) {
-//             return res.status(401).json({ message: 'Email not found kindly regsiter! ' });
-//         }
-//         const hashedpassword = crypto.AES.decrypt(user.password, process.env.PASS_SEC).toString(crypto.enc.Utf8);
-//         if (hashedpassword !== req.body.password) {
-//              return res.status(401).json({ message: 'Email and Password do not match' });
-//         }
-//         const { password, ...userWithoutPassword } = user.toObject();
-//         const accessToken = jwt.sign({
-//             user: user._id,
-//             userEmail:user.email,
-//             prefered_name:user.prefered_name,
-//             phone_number:user.phone_number,
-//             D_O_B:user.D_O_B,
-//             gender:user.gender,
-//             zodiacSign:user.zodiacSign,
-//             find_in:user.find_in,
-//             isAdmin: user.isAdmin
-//         }, process.env.JWT_SECRET, { expiresIn: '10h' });
-         
-//         const text = "Login"
-//         const prefered_name = user.prefered_name
-//         const userIPAddress = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.connection.remoteAddress;
-//         const city = req.city || "Not Found"
+//login user
+exports.LoginUser = async (req, res) => {
+    try {
+        const { userEmail, password, phoneNumber } = req.body;
+        if (!userEmail && !phoneNumber) {
+            return res.status(400).json({ message: "Email or Phone Number is required" });
+        }
+        if (!password) {
+            return res.status(400).json({ message: "Password is required" });
+        }
 
-//         console.log('User IP Address:', userIPAddress, user.email, text, prefered_name, city);
+        const user = await userModel.findOne({ $or: [{ userEmail: userEmail }, { phoneNumber: phoneNumber }] });
+        if (!user) {
+            return res.status(400).json({ message: "User does not exist,Kindly register" });
+        }
 
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+        const customerDeatils = await doCreateCustomer(user._id, req, res);
+        const token = jwt.sign({id: user._id,email: user.email,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country, customerId:customerDeatils?._id }, process.env.JWT_SECRET, { expiresIn: "1hr" });
+        res.status(200).json({ token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country, customerId:customerDeatils?._id });
 
-//         await sendLoginNotification(user.email, text, prefered_name, userIPAddress, city)
-//         let title = "Login";
-//         let description = "Login to your account";
-//         let country = "Kenya";
-//         let location = "Nairobi";
-//         let dateAndTime = Date.now();
-//         let userId = user._id;
-//         const ipaddress = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.connection.remoteAddress;
-//         await createActivity(title, description, city, country, location, dateAndTime, userId, ipaddress, res);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 
-        
-
-//         res.header("accesstoken", accessToken).json({
-//             message: 'Auth successful',
-//             //user: user
-//             user: userWithoutPassword,
-//             accessToken
-//         });
-
-//     } catch (error) {
-//         res.status(500).json({ message: error.message });
-//     }
-// };
+};
 // //Forgot password
 // exports.ForgotPassword =  async (req, res) => {
 //     const { email } = req.body
