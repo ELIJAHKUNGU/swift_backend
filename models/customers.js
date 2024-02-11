@@ -12,6 +12,7 @@ const customerSchema = new mongoose.Schema({
     customerType:{type:String},
     customerNumber:{type:String},
     customerSequence : {type : Number, unique: true},
+    userId:{type:mongoose.Schema.Types.ObjectId, ref: 'user'}
 }, {
     timestamps: true
 });

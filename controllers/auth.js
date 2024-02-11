@@ -14,8 +14,7 @@ exports.RegisterUser = async (req, res) => {
         let userEmailExist = await userModel.findOne({ userEmail });
         if(userEmailExist) return res.status(400).json({error: `User with email ${userEmail} already exists ...`});
 
-        const createUser = await doCreateUser(firstName,secondName, userEmail,userPhone, password ,req, res);
-        res.status(200).json({ message: 'User created successfully', result: createUser });
+        const createUser = await doCreateUser(firstName,secondName, userEmail,userPhone, password, type ,req, res);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
