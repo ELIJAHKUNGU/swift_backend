@@ -21,6 +21,7 @@ const merchantsSchema = new mongoose.Schema({
     state:{type:String},
     zipCode:{type:String},
     country:{type:String, default:"Zambia"},
+    userId:{type:mongoose.Schema.Types.ObjectId, ref: 'user'},
     defaultCurrency:{type:String},
     categorySchema:[categorySchema],
 

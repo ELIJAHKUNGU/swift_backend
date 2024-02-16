@@ -1,23 +1,28 @@
 const mongoose = require("mongoose");
-const UserSchema = new mongoose.Schema({
+
+const adminSchema = new mongoose.Schema({
     userEmail:{type:String, unique:true},
-    password:{type:String},
     firstName:{type:String},
     lastName:{type:String},
+    userName:{type:String},
     role:{type:String},
     phoneNumber:{type:String, unique:true},
+    adminNumber:{type:String},
+    adminSequence : {type : Number, unique: true},
     address:{type:String},
     city:{type:String},
     state:{type:String},
     zipCode:{type:String},
     country:{type:String, default:"Zambia"},
     defaultCurrency:{type:String},
-    defaultBusiness:{type:String},
-    oneTimePassword:{type:String},
-    oneTimePasswordStatus:{type:String, default:"Not used"},
+    userId:{type:mongoose.Schema.Types.ObjectId, ref: 'user'}
+   
+
+
+
 }, {
     timestamps: true
 });
 
-const User = mongoose.model('User' , UserSchema);
-module.exports = User;
+const adminsModel = mongoose.model('admins' , adminSchema);
+module.exports = adminsModel;

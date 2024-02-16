@@ -4,15 +4,28 @@ const verificationOtpCode = require('../models/verificationOtpCode');
 const HandleResponse = require("../helperfunctions/responseHelpers");
 const { doSendOtpCode } = require('./sendNotification');
 const { doCreateCustomer } = require('./customerHelpers');
+const { doCreateAdmin } = require('./adminHelpers');
 const HandleResponseInstance = new HandleResponse();
 
 exports.doCreateUser = async (firstName, secondName, userEmail, userPhone, password, type, req, res) => {
+   
     try {
+        let userPhoneExist = await userModel.findOne({ userPhone });
+        if (userPhoneExist) return res.status(400).json({ error: `User with phonenumber  ${userPhone} already exists ...` });
+        let userEmailExist = await userModel.findOne({ userEmail });
+        if (userEmailExist) return res.status(400).json({ error: `User with email ${userEmail} already exists ...` });
         bcrypt.hash(password, 0, (err, pinHashed) => {
             if (err) {
                 console.log(err);
             }
-            const user = new userModel({ firstName: firstName, lastName: secondName, userEmail: userEmail, password: pinHashed, role: "Customer", phoneNumber: userPhone, address: "0000", city: "Lusaka", state: "Lusaka", zipCode: "0000", country: "Zambia", defaultCurrency: "ZMW", defaultBusiness: "0000" });
+            let user 
+            if(type === "merchant"){
+                    user = new userModel({ firstName: firstName, lastName: secondName, userEmail: userEmail, password: pinHashed, role: "Merchant", phoneNumber: userPhone, address: "0000", city: "Lusaka", state: "Lusaka", zipCode: "0000", country: "Zambia", defaultCurrency: "ZMW", defaultBusiness: "0000" });
+            }else if(type === "customer"){
+                 user = new userModel({ firstName: firstName, lastName: secondName, userEmail: userEmail, password: pinHashed, role: "Customer", phoneNumber: userPhone, address: "0000", city: "Lusaka", state: "Lusaka", zipCode: "0000", country: "Zambia", defaultCurrency: "ZMW", defaultBusiness: "0000" });
+            }else if(type === "admin"){
+                user = new userModel({ firstName: firstName, lastName: secondName, userEmail: userEmail, password: pinHashed, role: "Admin", phoneNumber: userPhone, address: "0000", city: "Lusaka", state: "Lusaka", zipCode: "0000", country: "Zambia", defaultCurrency: "ZMW", defaultBusiness: "0000" });
+            }
             user.save()
                 .then(async result => {
                     //  res.status(200).json({ message: 'User created successfully', result: result });
@@ -32,10 +45,27 @@ exports.doCreateUser = async (firstName, secondName, userEmail, userPhone, passw
                             userId: result._id
                         }
                         await doCreateCustomer(customerData, req, res);
-                        res.status(200).json({ message: 'Customer created successfully', firstName: result.firstName, lastName: result.lastName, userEmail: result.userEmail, userPhone: result.userPhone});
+                       return  res.status(200).json({ message: 'Customer created successfully', firstName: result.firstName, lastName: result.lastName, userEmail: result.userEmail, userPhone: result.userPhone});
     
                     }else if(type === "admin"){
-                        res.status(200).json({ message: 'Admin created successfully', result: result });
+                        let newAdmin = {
+                            userEmail: result.userEmail,
+                            firstName: result.firstName,
+                            lastName: result.lastName,
+                            userName: result.firstName + " " + result.lastName,
+                            role: result.role,
+                            phoneNumber: result.userPhone,
+                            address: result.address,
+                            city: result.city,
+                            state: result.state,
+                            zipCode: result.zipCode,
+                            country: result.country,
+                            defaultCurrency: result.defaultCurrency,
+                            userId: result._id
+                        }
+                        await doCreateAdmin(newAdmin, req, res); 
+
+                       
                     }
                 })
                 .catch(err => { res.status(500).json({ error: err }); });

@@ -19,9 +19,6 @@ exports.getCustomerSequence = async () => {
         return newSequence[0].customerSequence + 1;
     }
 }
-
-
-
 exports.doCreateCustomer = async (data, req, res) => {
     const { customerName, customerEmail, customerPhone, customerAddress, customerCity, customerState, customerZipCode, paymentType, customerType, userId } = data;
     let newCustomerNumber = await this.generateCustomerNumber();

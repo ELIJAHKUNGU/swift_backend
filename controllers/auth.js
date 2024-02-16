@@ -8,14 +8,17 @@ const bcrypt = require('bcrypt');
 const { doCreateUser } = require('../helperfunctions/auth');
 const { doCreateCustomer } = require('../helperfunctions/customerHelpers');
 exports.RegisterUser = async (req, res) => {
-    const { firstName, secondName, userEmail, userPhone, password, type } = req.body;
+    const { firstName, secondName, userEmail, userPhone, password } = req.body;
+    let type
+    if(!type === "customer"){
+        type = "customer"
+    }else{
+        type = req.body.type
+    }
 
 
     try {
-        let userPhoneExist = await userModel.findOne({ userPhone });
-        if (userPhoneExist) return res.status(400).json({ error: `User with phonenumber  ${userPhone} already exists ...` });
-        let userEmailExist = await userModel.findOne({ userEmail });
-        if (userEmailExist) return res.status(400).json({ error: `User with email ${userEmail} already exists ...` });
+       
 
         const createUser = await doCreateUser(firstName, secondName, userEmail, userPhone, password, type, req, res);
     } catch (error) {
