@@ -6,7 +6,8 @@ const bcrypt = require('bcrypt');
 
 
 const { doCreateUser } = require('../helperfunctions/auth');
-const { doCreateCustomer } = require('../helperfunctions/customerHelpers');
+const { doCreateCustomer, doGetCustomerByUserId } = require('../helperfunctions/customerHelpers');
+const { doGetAdminByUserId } = require('../helperfunctions/adminHelpers');
 exports.RegisterUser = async (req, res) => {
     const { firstName, secondName, userEmail, userPhone, password } = req.body;
     let type
@@ -48,9 +49,23 @@ exports.LoginUser = async (req, res) => {
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
-        const customerDeatils = await doCreateCustomer(user._id, req, res);
-        const token = jwt.sign({id: user._id,email: user.email,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country, customerId:customerDeatils?._id }, process.env.JWT_SECRET, { expiresIn: "1hr" });
-        res.status(200).json({ token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country, customerId:customerDeatils?._id });
+        let  customerDeatils = {}
+        let adminDeatils = {}
+        if (user.role === "Customer") {
+            customerDeatils = await doGetCustomerByUserId(user._id, req, res);
+            const token = jwt.sign({id: user._id,email: user.email,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country, customerId:customerDeatils?._id }, process.env.JWT_SECRET, { expiresIn: "1hr" });
+            return res.status(200).json({ token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country, customerId:customerDeatils?._id });
+        }else if (user.role === "Admin") {
+            adminDeatils = await doGetAdminByUserId(user._id, req, res);
+            console.log(adminDeatils, "adminDeatils");
+            const token = jwt.sign({id: user._id,email: user.email,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country, adminId:adminDeatils?._id }, process.env.JWT_SECRET, { expiresIn: "1hr" });
+            return res.status(200).json({ token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country, adminId:adminDeatils?._id });
+        }else{
+            const token = jwt.sign({id: user._id,email: user.email,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country }, process.env.JWT_SECRET, { expiresIn: "1hr" });
+            return res.status(200).json({ token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country });
+        }
+
+        
 
     } catch (error) {
         res.status(500).json({ message: error.message });

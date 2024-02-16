@@ -37,3 +37,14 @@ exports.doCreateAdmin = async (data, req, res) => {
 
 
 }
+
+exports.doGetAdminByUserId = async (userId) => {
+
+    return adminsModel.find({ userId: userId })
+        .then(result => {
+            return result[0];
+        })
+        .catch(err => {
+            return err;
+        });
+}

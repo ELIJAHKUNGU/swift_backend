@@ -52,7 +52,7 @@ exports.doCreateCustomer = async (data, req, res) => {
 exports.doGetCustomerByUserId = async (userId) => {
     return customer.find({ userId: userId })
         .then(result => {
-            return result;
+            return result[0];
         })
         .catch(err => {
             return err;
