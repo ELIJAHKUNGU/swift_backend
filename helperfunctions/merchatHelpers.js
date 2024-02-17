@@ -10,10 +10,8 @@ exports.doAddMerchant = async (req, res) => {
 
     let categoryIds = req.body.categoryIds;
     let category = [];
-    categoryIds.forEach(categoryId => {
-        
-        
-    })
+    // categoryIds.forEach(element => {
+    //     c
 
     let merchantData = {
         merchantName: merchantName,

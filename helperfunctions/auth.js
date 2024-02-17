@@ -30,7 +30,27 @@ exports.doCreateUser = async (firstName, secondName, userEmail, userPhone, passw
                 .then(async result => {
                     //  res.status(200).json({ message: 'User created successfully', result: result });
                     if(type === "merchant"){
-                        res.status(200).json({ message: 'Merchant created successfully', result: result });
+                        
+                        let merchantData = {
+                            merchantName: result.firstName + " " + result.lastName,
+                            merchantEmail: result.userEmail,
+                            merchantPhone: result.userPhone,
+                            merchantAddress: result.address,
+                            merchantCity: result.city,
+                            merchantState: result.state,
+                            merchantZipCode: result.zipCode,
+                            paymentType: "Cash",
+                            merchantType: "Individual",
+                            userId: result._id,
+                            categoryIds: req.body.categoryIds,
+                            businessName: req.body.businessName,
+                            businessEmail: req.body.businessEmail,
+                            businessPhone: req.body.businessPhone,
+                            businessAddress: req.body.businessAddress
+
+                        }
+                        // await doCreateMerchant(merchantData, req, res);
+                        return  res.status(200).json({ message: 'Merchant created successfully', firstName: result.firstName, lastName: result.lastName, userEmail: result.userEmail, userPhone: result.userPhone});
                     }else if(type === "customer"){
                         let customerData = {
                             customerName: result.firstName + " " + result.lastName,

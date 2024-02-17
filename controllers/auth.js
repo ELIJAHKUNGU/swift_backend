@@ -54,15 +54,15 @@ exports.LoginUser = async (req, res) => {
         if (user.role === "Customer") {
             customerDeatils = await doGetCustomerByUserId(user._id, req, res);
             const token = jwt.sign({id: user._id,email: user.email,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country, customerId:customerDeatils?._id }, process.env.JWT_SECRET, { expiresIn: "1hr" });
-            return res.status(200).json({ token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country, customerId:customerDeatils?._id });
+            return res.status(200).json({status:"Success", message:"user logged in successfully", token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country, customerId:customerDeatils?._id });
         }else if (user.role === "Admin") {
             adminDeatils = await doGetAdminByUserId(user._id, req, res);
             console.log(adminDeatils, "adminDeatils");
             const token = jwt.sign({id: user._id,email: user.email,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country, adminId:adminDeatils?._id }, process.env.JWT_SECRET, { expiresIn: "1hr" });
-            return res.status(200).json({ token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country, adminId:adminDeatils?._id });
+            return res.status(200).json({ status:"Success", message:"user logged in successfully",token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country, adminId:adminDeatils?._id });
         }else{
             const token = jwt.sign({id: user._id,email: user.email,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country }, process.env.JWT_SECRET, { expiresIn: "1hr" });
-            return res.status(200).json({ token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country });
+            return res.status(200).json({status:"Success", message:"user logged in successfully", token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country });
         }
 
         
