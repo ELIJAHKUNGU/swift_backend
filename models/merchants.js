@@ -9,21 +9,25 @@ const  categorySchema = new mongoose.Schema({
     timestamps: true
 });
 const merchantsSchema = new mongoose.Schema({
-    userEmail:{type:String, unique:true},
-    firstName:{type:String},
-    lastName:{type:String},
-    userName:{type:String},
-    role:{type:String},
-    phoneNumber:{type:String, unique:true},
+    merchantName:{type:String},
+    merchantEmail:{type:String},
+    merchantPhone:{type:String},
+    merchantAddress:{type:String},
+    merchantCity:{type:String},
+    merchantState:{type:String},
+    merchantZipCode:{type:String},
+    paymentType:{type:String, default:"Cash"},
+    merchantCountry:{type:String, default:"Zambia"},
+    merchantType:{type:String, default:"Individual"},
     merchantNumber:{type:String},
-    address:{type:String},
-    city:{type:String},
-    state:{type:String},
-    zipCode:{type:String},
-    country:{type:String, default:"Zambia"},
+    merchantSequence:{type:Number, unique:true},
     userId:{type:mongoose.Schema.Types.ObjectId, ref: 'user'},
-    defaultCurrency:{type:String},
-    category:[categorySchema],
+    category:{type:Array, ref: 'category'},
+    businessName:{type:String},
+    businessEmail:{type:String},
+    businessPhone:{type:String},
+    businessAddress:{type:String},
+
 
 
 

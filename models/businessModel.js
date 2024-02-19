@@ -22,7 +22,8 @@ const businessSchema = new mongoose.Schema({
     businessNumber:{type:String},
     businessSequence:{type:Number, unique:true},
     userId:{type:mongoose.Schema.Types.ObjectId, ref: 'user'},
-    category:[categorySchema],
+    category:{type:Array, ref: 'category'},
+    merchantId:{type:mongoose.Schema.Types.ObjectId, ref: 'merchants'},
 }, {
     timestamps: true
 });

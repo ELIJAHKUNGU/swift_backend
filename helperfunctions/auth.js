@@ -23,40 +23,21 @@ exports.doCreateUser = async (firstName, secondName, userEmail, userPhone, passw
             }
             let user 
             if(type === "merchant"){
-                    user = new userModel({ firstName: firstName, lastName: secondName, userEmail: userEmail, password: pinHashed, role: "Merchant", phoneNumber: userPhone, address: "0000", city: "Lusaka", state: "Lusaka", zipCode: "0000", country: "Zambia", defaultCurrency: "ZMW", defaultBusiness: "0000" });
+                return res.status(400).json({ message: "Invalid user type" });
+                    // user = new userModel({ firstName: firstName, lastName: secondName, userEmail: userEmail, password: pinHashed, role: "Merchant", phoneNumber: userPhone, address: "0000", city: "Lusaka", state: "Lusaka", zipCode: "0000", country: "Zambia", defaultCurrency: "ZMW", defaultBusiness: "0000" });
             }else if(type === "customer"){
                  user = new userModel({ firstName: firstName, lastName: secondName, userEmail: userEmail, password: pinHashed, role: "Customer", phoneNumber: userPhone, address: "0000", city: "Lusaka", state: "Lusaka", zipCode: "0000", country: "Zambia", defaultCurrency: "ZMW", defaultBusiness: "0000" });
             }else if(type === "admin"){
-                user = new userModel({ firstName: firstName, lastName: secondName, userEmail: userEmail, password: pinHashed, role: "Admin", phoneNumber: userPhone, address: "0000", city: "Lusaka", state: "Lusaka", zipCode: "0000", country: "Zambia", defaultCurrency: "ZMW", defaultBusiness: "0000" });
+                return res.status(400).json({ message: "Invalid user type" });
+                // user = new userModel({ firstName: firstName, lastName: secondName, userEmail: userEmail, password: pinHashed, role: "Admin", phoneNumber: userPhone, address: "0000", city: "Lusaka", state: "Lusaka", zipCode: "0000", country: "Zambia", defaultCurrency: "ZMW", defaultBusiness: "0000" });
             }
 
             console.log(user, "user");
             user.save()
                 .then(async result => {
                     //  res.status(200).json({ message: 'User created successfully', result: result });
-                    if(type === "merchant"){
-                        
-                        let merchantData = {
-                            merchantName: result.firstName + " " + result.lastName,
-                            merchantEmail: result.userEmail,
-                            merchantPhone: result.userPhone,
-                            merchantAddress: result.address,
-                            merchantCity: result.city,
-                            merchantState: result.state,
-                            merchantZipCode: result.zipCode,
-                            paymentType: "Cash",
-                            merchantType: "Individual",
-                            userId: result._id,
-                            categoryIds: req.body.categoryIds,
-                            businessName: req.body.businessName,
-                            businessEmail: req.body.businessEmail,
-                            businessPhone: req.body.businessPhone,
-                            businessAddress: req.body.businessAddress
-
-                        }
-                        // await doCreateMerchant(merchantData, req, res);
-                        return  res.status(200).json({ message: 'Merchant created successfully', firstName: result.firstName, lastName: result.lastName, userEmail: result.userEmail, userPhone: result.userPhone});
-                    }else if(type === "customer"){
+                    
+                     if(type === "customer"){
                         let customerData = {
                             customerName: result.firstName + " " + result.lastName,
                             customerEmail: result.userEmail,
@@ -72,25 +53,6 @@ exports.doCreateUser = async (firstName, secondName, userEmail, userPhone, passw
                         await doCreateCustomer(customerData, req, res);
                        return  res.status(200).json({ message: 'Customer created successfully', firstName: result.firstName, lastName: result.lastName, userEmail: result.userEmail, userPhone: result.userPhone});
     
-                    }else if(type === "admin"){
-                        let newAdmin = {
-                            userEmail: result.userEmail,
-                            firstName: result.firstName,
-                            lastName: result.lastName,
-                            userName: result.firstName + " " + result.lastName,
-                            role: result.role,
-                            phoneNumber: result.userPhone,
-                            address: result.address,
-                            city: result.city,
-                            state: result.state,
-                            zipCode: result.zipCode,
-                            country: result.country,
-                            defaultCurrency: result.defaultCurrency,
-                            userId: result._id
-                        }
-                        await doCreateAdmin(newAdmin, req, res); 
-
-                       
                     }
                 })
                 .catch(err => { res.status(500).json({ error: err }); });
