@@ -15,6 +15,10 @@ exports.RegisterUser = async (req, res) => {
         type = "customer"
     }else{
         type = req.body.type
+        if(type !== "admin"  && type !== "customer" && type !== "merchant"){
+            return res.status(400).json({ message: "Invalid user type" });
+        }
+          
     }
 
 

@@ -9,6 +9,7 @@ const bodyParser = require("body-parser");
 var morgan = require('morgan');
 // Routes
 const autheticationRoutes = require("./routes/autheticationRoutes");
+const categoryRoutes = require("./routes/categoryRoute");
 dotenv.config({ path: "./.env" });
 connectDB();
 
@@ -25,6 +26,7 @@ app.get("/", (req, res) => {
 
 //ROUTES
 app.use('/', autheticationRoutes);
+app.use('/', categoryRoutes);
 
 //Starting server
 const startServer = async () => {

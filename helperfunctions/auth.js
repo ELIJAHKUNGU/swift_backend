@@ -29,6 +29,8 @@ exports.doCreateUser = async (firstName, secondName, userEmail, userPhone, passw
             }else if(type === "admin"){
                 user = new userModel({ firstName: firstName, lastName: secondName, userEmail: userEmail, password: pinHashed, role: "Admin", phoneNumber: userPhone, address: "0000", city: "Lusaka", state: "Lusaka", zipCode: "0000", country: "Zambia", defaultCurrency: "ZMW", defaultBusiness: "0000" });
             }
+
+            console.log(user, "user");
             user.save()
                 .then(async result => {
                     //  res.status(200).json({ message: 'User created successfully', result: result });
