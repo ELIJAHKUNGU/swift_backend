@@ -18,3 +18,15 @@ exports.doCreateCategory = async (categoryName, categoryDescription,categoryImag
             return res.status(500).json({ error: err });
         });
 };
+
+
+exports.doGetCategories = async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const startIndex = (page - 1) * limit;
+
+    const category = await Category.find().limit(limit).skip(startIndex);
+    const count = await Category.countDocuments();
+    const totalPages = Math.ceil(count / limit);
+    return res.status(200).json({ category, totalPages, currentPage: page });
+}
