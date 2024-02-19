@@ -1,3 +1,4 @@
+const categoryModel = require("../models/categoryModel");
 
 
 
@@ -10,8 +11,16 @@ exports.doAddMerchant = async (req, res) => {
 
     let categoryIds = req.body.categoryIds;
     let category = [];
-    // categoryIds.forEach(element => {
-    //     c
+    categoryIds.map(async(item) => {
+        let categoryObj = await categoryModel.findOne({ _id: item.categoryId });
+        let categoryData = {
+            categoryName: categoryObj.categoryName,
+            categoryDescription: categoryObj.categoryDescription,
+            categoryStatus: categoryObj.categoryStatus,
+            categoryId: categoryObj._id
+        }
+        category.push(categoryData);
+    })
 
     let merchantData = {
         merchantName: merchantName,
@@ -26,9 +35,7 @@ exports.doAddMerchant = async (req, res) => {
         merchantNumber: newMerchantNumber,
         merchantSequence: newMerchantSequence,
         userId: userId,
-        categoryIds:category
-
-        
+        category:category
     }
 
 

@@ -8,9 +8,12 @@ const { doCreateAdmin } = require('./adminHelpers');
 const HandleResponseInstance = new HandleResponse();
 
 exports.doCreateUser = async (firstName, secondName, userEmail, userPhone, password, type, req, res) => {
+    console.log(firstName, secondName, userEmail, userPhone, password, type, "doCreateUser");
+   
    
     try {
-        let userPhoneExist = await userModel.findOne({ userPhone });
+        let userPhoneExist = await userModel.findOne({ phoneNumber: userPhone});
+        console.log(userPhoneExist, "userPhoneExist");
         if (userPhoneExist) return res.status(400).json({ error: `User with phonenumber  ${userPhone} already exists ...` });
         let userEmailExist = await userModel.findOne({ userEmail });
         if (userEmailExist) return res.status(400).json({ error: `User with email ${userEmail} already exists ...` });

@@ -36,6 +36,7 @@ const productSchema = new mongoose.Schema({
     productTags:{type:String},
     productSequence : {type : Number, unique: true},
     productNumber:{type:String},
+    categoryId:{type:mongoose.Schema.Types.ObjectId, ref: 'category'},
 }, {
     timestamps: true
 });
