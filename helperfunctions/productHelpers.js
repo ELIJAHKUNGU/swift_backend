@@ -12,6 +12,12 @@ exports.doCreateProduct = async (req, res) => {
     if(role === "merchant" && role === "Merchant" && role ==="admin"){
         return res.status(400).json({ message: "You are not authorized to create product" });
     }
+    if(role === "merchant" || role === "Merchant"){
+        merchantId = req.id.merchantId
+        businessNumber = req.id.businessNumber
+        merchantNumber = req.id.merchantNumber
+        
+    }
     if(role === "admin"){
         console.log("Admin can create product");
         let merchantId = req.body.merchantId
@@ -32,7 +38,7 @@ exports.doCreateProduct = async (req, res) => {
 
     }
 
-    const {productName, productImage, productDescription, productBrand, productCategory, ratings, productPrice, productQuantity, productDiscount, productTax, productShippingCost, productShippingWeight, productFeatures, productTags,} = req.body
+    const {productName,productImage,  productDescription, productBrand, productCategory, ratings, productPrice, productQuantity, productDiscount, productTax, productShippingCost, productShippingWeight, productFeatures, productTags,} = req.body
 
     let emptyFields = []
     if(!productName || productName === ""){
@@ -55,6 +61,9 @@ exports.doCreateProduct = async (req, res) => {
     }
     if(emptyFields.length > 0){
         return res.status(400).json({ message: `The following fields are required: ${emptyFields.join(', ')}` });
+    }
+    if(!productImage || productImage.length === 0){
+        return res.status(400).json({ message: "Product image is required" });
     }
     let data = {
         productName:productName,
@@ -80,6 +89,7 @@ exports.doCreateProduct = async (req, res) => {
 
 
 exports.createNewProduct = async (data, req, res) => {
+    console.log(data, "data");
     let newProduct =   await ProductsModel.create({
         productName: data.productName,
         productImage: data.productImage,
@@ -102,7 +112,7 @@ exports.createNewProduct = async (data, req, res) => {
         productSequence: await getProductSequence()
     }).then(async result => {
         console.log("Product saved successfully:", result);
-        return res.status(200).json({ message: 'Product created successfully', productName: result.productName,  productDescription: result.productDescription, productBrand: result.productBrand, merchantId: result.merchantId, merchantNumber: result.merchantNumber, businessNumber: result.businessNumber, productCategory: result.productCategory, ratings: result.ratings, productPrice: result.productPrice, productQuantity: result.productQuantity, productDiscount: result.productDiscount, productTax: result.productTax, productShippingCost: result.productShippingCost, productShippingWeight: result.productShippingWeight, productFeatures: result.productFeatures, productTags: result.productTags, productNumber: result.productNumber });
+        return res.status(200).json({status:"SUCCESS", message: 'Product created successfully', productName: result.productName, productImage : result.productImage, productDescription: result.productDescription, productBrand: result.productBrand, merchantId: result.merchantId, merchantNumber: result.merchantNumber, businessNumber: result.businessNumber, productCategory: result.productCategory, ratings: result.ratings, productPrice: result.productPrice, productQuantity: result.productQuantity, productDiscount: result.productDiscount, productTax: result.productTax, productShippingCost: result.productShippingCost, productShippingWeight: result.productShippingWeight, productFeatures: result.productFeatures, productTags: result.productTags, productNumber: result.productNumber });
     }).catch(error => {
         if (error.code === 11000) {
             // Handle duplicate key error here

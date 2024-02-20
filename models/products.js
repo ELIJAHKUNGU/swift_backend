@@ -17,7 +17,7 @@ const productFeaturesSchema = new mongoose.Schema({
 });
 const productSchema = new mongoose.Schema({
     productName:{type:String},
-    prouctImage: [productImageSchema],
+    productImage: [productImageSchema],
     productDescription:{type:String},
     productBrand:{type:String},
     merchantId:{type:String},
