@@ -161,7 +161,7 @@ exports.doGetProduct = async (req, res) => {
         return res.status(200).json({ status: "SUCCESS", products: products, pages: pages, currentPage: page, count: count });
     }
     if (role === "admin") {
-        let merchantId = req.body.merchantId
+        let merchantId = req.query.merchantId
         if (merchantId) {
             let products = await ProductsModel.find({ merchantId: merchantId }).limit(limit).skip(startIndex);
             let count = await ProductsModel.countDocuments({ merchantId: merchantId });
