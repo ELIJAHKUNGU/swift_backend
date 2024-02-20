@@ -16,7 +16,6 @@ exports.doCreateProduct = async (req, res) => {
         merchantId = req.id.merchantId
         businessNumber = req.id.businessNumber
         merchantNumber = req.id.merchantNumber
-
     }
     if (role === "admin") {
         console.log("Admin can create product");
@@ -34,8 +33,6 @@ exports.doCreateProduct = async (req, res) => {
         }
         businessNumber = businessDetails.businessNumber
         merchantNumber = merchantDeatils.merchantNumber
-
-
     }
 
     const { productName, productImage, productDescription, productBrand, productCategory, ratings, productPrice, productQuantity, productDiscount, productTax, productShippingCost, productShippingWeight, productFeatures, productTags, } = req.body
@@ -64,6 +61,10 @@ exports.doCreateProduct = async (req, res) => {
     }
     if (!productImage || productImage.length === 0) {
         return res.status(400).json({ message: "Product image is required" });
+    }
+    let product = await ProductsModel.findOne({ productName: productName });
+    if (product) {
+        return res.status(400).json({ message: "Product already exists" });
     }
     let data = {
         productName: productName,
