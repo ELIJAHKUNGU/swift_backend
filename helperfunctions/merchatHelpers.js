@@ -122,3 +122,12 @@ exports.getMerchantSequence = async () => {
         return newSequence[0].merchantSequence + 1;
     }
 }
+
+
+exports.doGetMerchantByUserId = async (userId, req, res) => {
+    const merchant = await merchantModel.findOne({ userId: userId });
+    if (!merchant) {
+       return res.status(404).json({ message: 'Merchant not found' });
+    }
+    return  merchant;
+}

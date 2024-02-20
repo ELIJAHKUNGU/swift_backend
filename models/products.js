@@ -26,7 +26,7 @@ const productSchema = new mongoose.Schema({
     productCategory:{type:String},
     ratings:{type:String},
     productPrice:{type:String},
-    productStatus:{type:String},
+    productStatus:{type:String, default:"inactive"},
     productQuantity:{type:String},
     productDiscount:{type:String},
     productTax:{type:String},

@@ -44,3 +44,13 @@ exports.doCreateBusiness = async (businessName,businessEmail, businessPhone, bus
         throw new Error(error);
     }
 }
+
+exports.doGetBusinessByUserId = async (userId) => {
+    return Business.find({ userId: userId })
+        .then(result => {
+            return result;
+        })
+        .catch(err => {
+            return err;
+        });
+}
