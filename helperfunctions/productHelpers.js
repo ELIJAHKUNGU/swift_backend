@@ -7,7 +7,11 @@ exports.doCreateProduct = async (req, res) => {
     let merchantId 
     let businessNumber
     let merchantNumber
-    let role = req.role;
+    let role = req.id.role;
+    console.log(role, "role");
+    if(role === "merchant" && role === "Merchant" && role ==="admin"){
+        return res.status(400).json({ message: "You are not authorized to create product" });
+    }
     if(role === "admin"){
         console.log("Admin can create product");
         let merchantId = req.body.merchantId
@@ -26,31 +30,27 @@ exports.doCreateProduct = async (req, res) => {
         merchantNumber = merchantDeatils.merchantNumber
 
 
-    }else if(role === "merchant"){
-
-    }else{
-        return res.status(400).json({ message: "You are not authorized to create product" });
     }
 
     const {productName, productImage, productDescription, productBrand, productCategory, ratings, productPrice, productQuantity, productDiscount, productTax, productShippingCost, productShippingWeight, productFeatures, productTags,} = req.body
 
     let emptyFields = []
-    if(!productName){
+    if(!productName || productName === ""){
         emptyFields.push('productName');
     }
-    if(!productDescription){
+    if(!productDescription || productDescription === ""){
         emptyFields.push('productDescription');
     }
-    if(!productBrand){
+    if(!productBrand || productBrand === ""){
         emptyFields.push('productBrand');
     }
     if(!productCategory){
         emptyFields.push('productCategory');
     }
-    if(!productPrice){
+    if(!productPrice || productPrice === ""){
         emptyFields.push('productPrice');
     }
-    if(!productQuantity){
+    if(!productQuantity || productQuantity === ""){
         emptyFields.push('productQuantity');
     }
     if(emptyFields.length > 0){
@@ -75,11 +75,11 @@ exports.doCreateProduct = async (req, res) => {
         productFeatures:productFeatures,
         productTags:productTags
     }
-    await this.doCreateProduct(data, req, res);
+    await this.createNewProduct(data, req, res);
 }
 
 
-exports.doCreateProduct = async (data, req, res) => {
+exports.createNewProduct = async (data, req, res) => {
     let newProduct =   await ProductsModel.create({
         productName: data.productName,
         productImage: data.productImage,
@@ -102,7 +102,7 @@ exports.doCreateProduct = async (data, req, res) => {
         productSequence: await getProductSequence()
     }).then(async result => {
         console.log("Product saved successfully:", result);
-        return res.status(200).json({ message: 'Product created successfully', productName: result.productName, productImage: result.productImage, productDescription: result.productDescription, productBrand: result.productBrand, merchantId: result.merchantId, merchantNumber: result.merchantNumber, businessNumber: result.businessNumber, productCategory: result.productCategory, ratings: result.ratings, productPrice: result.productPrice, productQuantity: result.productQuantity, productDiscount: result.productDiscount, productTax: result.productTax, productShippingCost: result.productShippingCost, productShippingWeight: result.productShippingWeight, productFeatures: result.productFeatures, productTags: result.productTags, productNumber: result.productNumber });
+        return res.status(200).json({ message: 'Product created successfully', productName: result.productName,  productDescription: result.productDescription, productBrand: result.productBrand, merchantId: result.merchantId, merchantNumber: result.merchantNumber, businessNumber: result.businessNumber, productCategory: result.productCategory, ratings: result.ratings, productPrice: result.productPrice, productQuantity: result.productQuantity, productDiscount: result.productDiscount, productTax: result.productTax, productShippingCost: result.productShippingCost, productShippingWeight: result.productShippingWeight, productFeatures: result.productFeatures, productTags: result.productTags, productNumber: result.productNumber });
     }).catch(error => {
         if (error.code === 11000) {
             // Handle duplicate key error here
