@@ -1,29 +1,7 @@
-// productName:{type:String},
-// prouctImage: [productImageSchema],
-// productDescription:{type:String},
-// productBrand:{type:String},
-// merchantId:{type:String},
-// merchantNumber:{type:String},
-// productCategory:{type:String},
-// ratings:{type:String},
-// productPrice:{type:String},
-// productStatus:{type:String, default:"inactive"},
-// productQuantity:{type:String},
-// productDiscount:{type:String},
-// productTax:{type:String},
-// productShippingCost:{type:String},
-// productShippingWeight:{type:String},
-// productFeatures:[productFeaturesSchema],
-// productTags:{type:String},
-// productSequence : {type : Number, unique: true},
-// productNumber:{type:String},
-// categoryId:{type:mongoose.Schema.Types.ObjectId, ref: 'category'},
-
 const Business = require("../models/businessModel");
 const Merchants = require("../models/merchants");
 const { ObjectId } = require('mongodb'); // Import ObjectId from mongodb
-
-
+const ProductsModel = require("../models/products");
 exports.doCreateProduct = async (req, res) => {
     console.log(req.id, "req.id" );
     let merchantId 
@@ -97,9 +75,61 @@ exports.doCreateProduct = async (req, res) => {
         productFeatures:productFeatures,
         productTags:productTags
     }
-   
+    await this.doCreateProduct(data, req, res);
 }
 
 
 exports.doCreateProduct = async (data, req, res) => {
+    let newProduct =   await ProductsModel.create({
+        productName: data.productName,
+        productImage: data.productImage,
+        productDescription: data.productDescription,
+        productBrand: data.productBrand,
+        merchantId: data.merchantId,
+        merchantNumber: data.merchantNumber,
+        businessNumber: data.businessNumber,
+        productCategory: data.productCategory,
+        ratings: data.ratings,
+        productPrice: data.productPrice,
+        productQuantity: data.productQuantity,
+        productDiscount: data.productDiscount,
+        productTax: data.productTax,
+        productShippingCost: data.productShippingCost,
+        productShippingWeight: data.productShippingWeight,
+        productFeatures: data.productFeatures,
+        productTags: data.productTags,
+        productNumber: await generateProductNumber(),
+        productSequence: await getProductSequence()
+    }).then(async result => {
+        console.log("Product saved successfully:", result);
+        return res.status(200).json({ message: 'Product created successfully', productName: result.productName, productImage: result.productImage, productDescription: result.productDescription, productBrand: result.productBrand, merchantId: result.merchantId, merchantNumber: result.merchantNumber, businessNumber: result.businessNumber, productCategory: result.productCategory, ratings: result.ratings, productPrice: result.productPrice, productQuantity: result.productQuantity, productDiscount: result.productDiscount, productTax: result.productTax, productShippingCost: result.productShippingCost, productShippingWeight: result.productShippingWeight, productFeatures: result.productFeatures, productTags: result.productTags, productNumber: result.productNumber });
+    }).catch(error => {
+        if (error.code === 11000) {
+            // Handle duplicate key error here
+            console.error("Duplicate key error:", error);
+            res.status(400).json({ message: "Product already exists" });
+        } else {
+            // Handle other errors
+            console.error("Error saving product:", error);
+            res.status(500).json({ message: "Internal server error" });
+        }
+        return Promise.reject(error);
+    });
+}
+
+const generateProductNumber = async () => {
+    let productSequence = await getProductSequence();
+    let productNumber = "P" + productSequence;
+    return productNumber;
+}
+
+const getProductSequence = async () => {
+    let productSequence = 0;
+    let product = await ProductsModel.findOne().sort({ productSequence: -1 });
+    if (product) {
+        productSequence = product.productSequence + 1;
+    } else {
+        productSequence = 1;
+    }
+    return productSequence;
 }

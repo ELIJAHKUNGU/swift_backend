@@ -28,7 +28,7 @@ const productSchema = new mongoose.Schema({
     productPrice:{type:String},
     productStatus:{type:String, default:"inactive"},
     productQuantity:{type:String},
-    productDiscount:{type:Number, default:0},
+    productDiscount:{type:String, default:"0"},
     productTax:{type:String},
     productShippingCost:{type:String},
     productShippingWeight:{type:String},

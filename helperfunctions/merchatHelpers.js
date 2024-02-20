@@ -44,7 +44,7 @@ exports.doAddMerchant = async (req, res) => {
 
                     }
                     // console.log(merchantData, "merchantData");
-                    await doSendPassword(merchantData.merchantEmail, merchantData.password, merchantData.merchantName);
+                    await doSendPassword(merchantData.merchantEmail, password, merchantData.merchantName);
                     await this.doCreateMerchant(merchantData, req, res);
                 })
         })
@@ -137,7 +137,7 @@ exports.getMerchantSequence = async () => {
 exports.doGetMerchantByUserId = async (userId, req, res) => {
     const merchant = await merchantModel.findOne({ userId: userId });
     if (!merchant) {
-        return res.status(404).json({ message: 'Merchant not found' });
+        return res.status(404).json({ status: "FAILED", message: "Merchant not found"});
     }
     return merchant;
 }
