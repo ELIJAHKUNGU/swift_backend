@@ -3,26 +3,25 @@ const merchantModel = require("../models/merchants");
 const bcrypt = require('bcrypt');
 const { doCreateBusiness } = require("./businessHelpers");
 const { ObjectId } = require('mongodb'); // Import ObjectId from mongodb
-const Category = require("../models/categoryModel");
 const { generatePassword } = require("./auth");
-const {  doSendPassword } = require("./sendNotification");
+const { doSendPassword } = require("./sendNotification");
 
 
 exports.doAddMerchant = async (req, res) => {
-    const { firstName, secondName, userEmail, userPhone,  categoryIds, businessName, businessEmail, businessPhone, businessAddress} = req.body;
+    const { firstName, secondName, userEmail, userPhone, businessName, businessEmail, businessPhone, businessAddress, categoryIds } = req.body;
     let password = await generatePassword();
     try {
         let userPhoneExist = await userModel.findOne({ phoneNumber: userPhone });
         console.log(userPhoneExist, "userPhoneExist");
-        if (userPhoneExist) return res.status(400).json({ error: `User with phonenumber  ${userPhone} already exists ...` });
+        if (userPhoneExist) return res.status(400).json({status:"Failed", message: `User with phonenumber  ${userPhone} already exists ...` });
         let userEmailExist = await userModel.findOne({ userEmail });
-        if (userEmailExist) return res.status(400).json({ error: `User with email ${userEmail} already exists ...` });
+        if (userEmailExist) return res.status(400).json({ status:"Failed",  message: `User with email ${userEmail} already exists ...` });
 
         bcrypt.hash(password, 0, (err, pinHashed) => {
             if (err) {
                 console.log(err);
             }
-            let  user = new userModel({ firstName: firstName, lastName: secondName, userEmail: userEmail, password: pinHashed, role: "Merchant", phoneNumber: userPhone, address: "0000", city: "Lusaka", state: "Lusaka", zipCode: "0000", country: "Zambia", defaultCurrency: "ZMW", defaultBusiness: "0000" ,oneTimePasswordStatus:"false" });
+            let user = new userModel({ firstName: firstName, lastName: secondName, userEmail: userEmail, password: pinHashed, role: "Merchant", phoneNumber: userPhone, address: "0000", city: "Lusaka", state: "Lusaka", zipCode: "0000", country: "Zambia", defaultCurrency: "ZMW", defaultBusiness: "0000", oneTimePasswordStatus: "false" });
             console.log(user, "user=====????");
             user.save()
                 .then(async result => {
@@ -37,16 +36,15 @@ exports.doAddMerchant = async (req, res) => {
                         paymentType: "Cash",
                         merchantType: "Individual",
                         userId: result._id,
-                        categoryIds: categoryIds,
                         businessName: businessName,
                         businessEmail: businessEmail,
                         businessPhone: businessPhone,
                         businessAddress: businessAddress,
-                        password: password
+                       category: categoryIds
 
                     }
-                    console.log(merchantData, "merchantData");
-                    await doSendPassword(merchantData.merchantEmail, merchantData.password,merchantData.merchantName);
+                    // console.log(merchantData, "merchantData");
+                    await doSendPassword(merchantData.merchantEmail, merchantData.password, merchantData.merchantName);
                     await this.doCreateMerchant(merchantData, req, res);
                 })
         })
@@ -58,7 +56,7 @@ exports.doAddMerchant = async (req, res) => {
 
 
 exports.doCreateMerchant = async (merchantData, req, res) => {
-    console.log(merchantData, "merchantData");
+    // console.log(merchantData, "merchantData");
     let merchantExist = await merchantModel.findOne({ merchantEmail: merchantData.merchantEmail });
     if (merchantExist) {
         return res.status(409).json({ message: 'Merchant already exists' });
@@ -66,52 +64,41 @@ exports.doCreateMerchant = async (merchantData, req, res) => {
     let merchantNumber = await this.generateMerchantNumber();
     let merchantSequence = await this.getMerchantSequence();
     console.log(merchantData, "merchantData");
-    let categoryIds = merchantData.categoryIds;
-    if (!categoryIds || categoryIds.length === 0) {
-        Promise.reject("Category IDs are required.");
-        return res.status(400).json({ message: 'Category IDs are required.' });
-    }
-    console.log(categoryIds, "categoryIds");
-    Category.find({ _id: { $in: categoryIds } })
-    .then(categories => {
-        if (categories.length !== merchantData.categoryIds.length) {
-            throw new Error("One or more category IDs are invalid.");
+    let newMerchant =   await merchantModel.create({
+        merchantName: merchantData.merchantName,
+        merchantEmail: merchantData.merchantEmail,
+        merchantPhone: merchantData.merchantPhone,
+        merchantAddress: merchantData.merchantAddress,
+        merchantCity: merchantData.merchantCity,
+        merchantState: merchantData.merchantState,
+        merchantZipCode: merchantData.merchantZipCode,
+        paymentType: merchantData.paymentType,
+        merchantCountry: "Zambia",
+        merchantType: merchantData.merchantType,
+        userId: merchantData.userId,
+        businessName: merchantData.businessName,
+        businessEmail: merchantData.businessEmail,
+        businessPhone: merchantData.businessPhone,
+        businessAddress: merchantData.businessAddress,
+        merchantNumber: merchantNumber,
+        merchantSequence: merchantSequence,
+        category: merchantData.category
+        
+    }).then(async result => {
+        console.log("Merchant saved successfully:", result);
+        await doCreateBusiness(result.businessName, result.businessEmail, result.businessPhone, result.businessAddress, result.businessCity, result.merchantState, result.merchantZipCode, result.merchantCountry, "Retail", result.userId, result.category, result._id, req, res);
+        return res.status(200).json({ message: 'Merchant created successfully', merchantName: result.merchantName, merchantEmail: result.merchantEmail, merchantPhone: result.merchantPhone, merchantAddress: result.merchantAddress, merchantCity: result.merchantCity, merchantState: result.merchantState, merchantZipCode: result.merchantZipCode, paymentType: result.paymentType, merchantType: result.merchantType, userId: result.userId, category: result.category, businessName: result.businessName, businessEmail: result.businessEmail, businessPhone: result.businessPhone, businessAddress: result.businessAddress, merchantNumber: result.merchantNumber, merchantSequence: result.merchantSequence });
+    }).catch(error => {
+        if (error.code === 11000) {
+            // Handle duplicate key error here
+            console.error("Duplicate key error:", error);
+        } else {
+            // Handle other errors
+            console.error("Error saving merchant:", error);
         }
-        let newMerchant = new merchantModel({
-            merchantName: merchantData.merchantName,
-            merchantEmail: merchantData.merchantEmail,
-            merchantPhone: merchantData.merchantPhone,
-            merchantAddress: merchantData.merchantAddress,
-            merchantCity: merchantData.merchantCity,
-            merchantState: merchantData.merchantState,
-            merchantZipCode: merchantData.merchantZipCode,
-            paymentType: merchantData.paymentType,
-            merchantType: merchantData.merchantType,
-            userId: merchantData.userId,
-            category: categories,  
-            businessName: merchantData.businessName,
-            businessEmail: merchantData.businessEmail,
-            businessPhone: merchantData.businessPhone,
-            businessAddress: merchantData.businessAddress,
-            merchantNumber: merchantNumber,
-            merchantSequence: merchantSequence
-        });
-        console.log(newMerchant, "newMerchant");
-        return newMerchant.save().then(async result => {
-            console.log("Merchant saved successfully:", result);
-            await doCreateBusiness(result.businessName,result.businessEmail, result.businessPhone, result.businessAddress, result.businessCity, result.merchantState, result.merchantZipCode, result.merchantCountry, "Retail",  result.userId, result.category, result._id, req, res);
-            return res.status(200).json({ message: 'Merchant created successfully', merchantName: result.merchantName, merchantEmail: result.merchantEmail, merchantPhone: result.merchantPhone, merchantAddress: result.merchantAddress, merchantCity: result.merchantCity, merchantState: result.merchantState, merchantZipCode: result.merchantZipCode, paymentType: result.paymentType, merchantType: result.merchantType, userId: result.userId, category: result.category, businessName: result.businessName, businessEmail: result.businessEmail, businessPhone: result.businessPhone, businessAddress: result.businessAddress, merchantNumber: result.merchantNumber, merchantSequence: result.merchantSequence });
-        }).catch(error => {
-            if (error.code === 11000) {
-                // Handle duplicate key error here
-                console.error("Duplicate key error:", error);
-            } else {
-                // Handle other errors
-                console.error("Error saving merchant:", error);
-            }
-            return Promise.reject(error);
-        });
-    })
+        return Promise.reject(error);
+    });
+
 }
 
 exports.doGetMerchantByUserId = async (userId) => {
@@ -150,9 +137,9 @@ exports.getMerchantSequence = async () => {
 exports.doGetMerchantByUserId = async (userId, req, res) => {
     const merchant = await merchantModel.findOne({ userId: userId });
     if (!merchant) {
-       return res.status(404).json({ message: 'Merchant not found' });
+        return res.status(404).json({ message: 'Merchant not found' });
     }
-    return  merchant;
+    return merchant;
 }
 
 
@@ -164,5 +151,5 @@ exports.doGetMerchant = async (req, res) => {
     const merchant = await merchantModel.find().limit(limit).skip(startIndex);
     const count = await merchantModel.countDocuments();
     const totalPages = Math.ceil(count / limit);
-    return res.status(200).json({status:"SUCCESS",  message:"Successfully fetched merchnat",  data: merchant, totalPages, currentPage: page, count: count });
+    return res.status(200).json({ status: "SUCCESS", message: "Successfully fetched merchnat", data: merchant, totalPages, currentPage: page, count: count });
 }
