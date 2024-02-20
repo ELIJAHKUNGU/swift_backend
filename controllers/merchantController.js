@@ -1,7 +1,7 @@
-const { doCreateMerchant, doGetMerchant } = require("../helperfunctions/merchatHelpers");
+const { doCreateMerchant, doGetMerchant, doAddMerchant } = require("../helperfunctions/merchatHelpers");
 
 exports.createMerchant = async (req, res) => {
-    await doCreateMerchant(req, res);
+    await doAddMerchant(req, res);
 }
 
 

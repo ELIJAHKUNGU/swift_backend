@@ -66,7 +66,7 @@ exports.doCreateMerchant = async (merchantData, req, res) => {
     let merchantNumber = await this.generateMerchantNumber();
     let merchantSequence = await this.getMerchantSequence();
     console.log(merchantData, "merchantData");
-    let categoryIds = req.body.categoryIds;
+    let categoryIds = merchantData.categoryIds;
     if (!categoryIds || categoryIds.length === 0) {
         Promise.reject("Category IDs are required.");
         return res.status(400).json({ message: 'Category IDs are required.' });
