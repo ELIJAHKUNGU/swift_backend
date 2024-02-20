@@ -163,5 +163,5 @@ exports.doGetMerchant = async (req, res) => {
     const merchant = await merchantModel.find().limit(limit).skip(startIndex);
     const count = await merchantModel.countDocuments();
     const totalPages = Math.ceil(count / limit);
-    return res.status(200).json({ merchant, totalPages, currentPage: page, count: count });
+    return res.status(200).json({status:"SUCCESS",  message:"Successfully fetched merchnat",  data: merchant, totalPages, currentPage: page, count: count });
 }
