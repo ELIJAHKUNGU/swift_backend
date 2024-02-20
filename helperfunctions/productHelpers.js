@@ -3,33 +3,33 @@ const Merchants = require("../models/merchants");
 const { ObjectId } = require('mongodb'); // Import ObjectId from mongodb
 const ProductsModel = require("../models/products");
 exports.doCreateProduct = async (req, res) => {
-    console.log(req.id, "req.id" );
-    let merchantId 
+    console.log(req.id, "req.id");
+    let merchantId
     let businessNumber
     let merchantNumber
     let role = req.id.role;
     console.log(role, "role");
-    if(role === "merchant" && role === "Merchant" && role ==="admin"){
+    if (role === "merchant" && role === "Merchant" && role === "admin") {
         return res.status(400).json({ message: "You are not authorized to create product" });
     }
-    if(role === "merchant" || role === "Merchant"){
+    if (role === "merchant" || role === "Merchant") {
         merchantId = req.id.merchantId
         businessNumber = req.id.businessNumber
         merchantNumber = req.id.merchantNumber
-        
+
     }
-    if(role === "admin"){
+    if (role === "admin") {
         console.log("Admin can create product");
         let merchantId = req.body.merchantId
-        if(!merchantId){
+        if (!merchantId) {
             return res.status(400).json({ message: "Merchant Id is required" });
         }
-        let merchantDeatils = await Merchants.findOne({ _id:ObjectId(merchantId) });
-        if(!merchantDeatils){
+        let merchantDeatils = await Merchants.findOne({ _id: ObjectId(merchantId) });
+        if (!merchantDeatils) {
             return res.status(400).json({ message: "Merchant does not exist" });
         }
-        let businessDetails = await Business.findOne({merchantId:merchantId});
-        if(!businessDetails){
+        let businessDetails = await Business.findOne({ merchantId: merchantId });
+        if (!businessDetails) {
             return res.status(400).json({ message: "Business does not exist" });
         }
         businessNumber = businessDetails.businessNumber
@@ -38,51 +38,51 @@ exports.doCreateProduct = async (req, res) => {
 
     }
 
-    const {productName,productImage,  productDescription, productBrand, productCategory, ratings, productPrice, productQuantity, productDiscount, productTax, productShippingCost, productShippingWeight, productFeatures, productTags,} = req.body
+    const { productName, productImage, productDescription, productBrand, productCategory, ratings, productPrice, productQuantity, productDiscount, productTax, productShippingCost, productShippingWeight, productFeatures, productTags, } = req.body
 
     let emptyFields = []
-    if(!productName || productName === ""){
+    if (!productName || productName === "") {
         emptyFields.push('productName');
     }
-    if(!productDescription || productDescription === ""){
+    if (!productDescription || productDescription === "") {
         emptyFields.push('productDescription');
     }
-    if(!productBrand || productBrand === ""){
+    if (!productBrand || productBrand === "") {
         emptyFields.push('productBrand');
     }
-    if(!productCategory){
+    if (!productCategory) {
         emptyFields.push('productCategory');
     }
-    if(!productPrice || productPrice === ""){
+    if (!productPrice || productPrice === "") {
         emptyFields.push('productPrice');
     }
-    if(!productQuantity || productQuantity === ""){
+    if (!productQuantity || productQuantity === "") {
         emptyFields.push('productQuantity');
     }
-    if(emptyFields.length > 0){
+    if (emptyFields.length > 0) {
         return res.status(400).json({ message: `The following fields are required: ${emptyFields.join(', ')}` });
     }
-    if(!productImage || productImage.length === 0){
+    if (!productImage || productImage.length === 0) {
         return res.status(400).json({ message: "Product image is required" });
     }
     let data = {
-        productName:productName,
-        productImage:productImage,
-        productDescription:productDescription,
-        productBrand:productBrand,
-        merchantId:merchantId,
-        merchantNumber:merchantNumber,
-        businessNumber:businessNumber,
-        productCategory:productCategory,
-        ratings:ratings,
-        productPrice:productPrice,
-        productQuantity:productQuantity,
-        productDiscount:productDiscount,
-        productTax:productTax,
-        productShippingCost:productShippingCost,
-        productShippingWeight:productShippingWeight,
-        productFeatures:productFeatures,
-        productTags:productTags
+        productName: productName,
+        productImage: productImage,
+        productDescription: productDescription,
+        productBrand: productBrand,
+        merchantId: merchantId,
+        merchantNumber: merchantNumber,
+        businessNumber: businessNumber,
+        productCategory: productCategory,
+        ratings: ratings,
+        productPrice: productPrice,
+        productQuantity: productQuantity,
+        productDiscount: productDiscount,
+        productTax: productTax,
+        productShippingCost: productShippingCost,
+        productShippingWeight: productShippingWeight,
+        productFeatures: productFeatures,
+        productTags: productTags
     }
     await this.createNewProduct(data, req, res);
 }
@@ -90,7 +90,7 @@ exports.doCreateProduct = async (req, res) => {
 
 exports.createNewProduct = async (data, req, res) => {
     console.log(data, "data");
-    let newProduct =   await ProductsModel.create({
+    let newProduct = await ProductsModel.create({
         productName: data.productName,
         productImage: data.productImage,
         productDescription: data.productDescription,
@@ -112,7 +112,7 @@ exports.createNewProduct = async (data, req, res) => {
         productSequence: await getProductSequence()
     }).then(async result => {
         console.log("Product saved successfully:", result);
-        return res.status(200).json({status:"SUCCESS", message: 'Product created successfully', productName: result.productName, productImage : result.productImage, productDescription: result.productDescription, productBrand: result.productBrand, merchantId: result.merchantId, merchantNumber: result.merchantNumber, businessNumber: result.businessNumber, productCategory: result.productCategory, ratings: result.ratings, productPrice: result.productPrice, productQuantity: result.productQuantity, productDiscount: result.productDiscount, productTax: result.productTax, productShippingCost: result.productShippingCost, productShippingWeight: result.productShippingWeight, productFeatures: result.productFeatures, productTags: result.productTags, productNumber: result.productNumber });
+        return res.status(200).json({ status: "SUCCESS", message: 'Product created successfully', productName: result.productName, productImage: result.productImage, productDescription: result.productDescription, productBrand: result.productBrand, merchantId: result.merchantId, merchantNumber: result.merchantNumber, businessNumber: result.businessNumber, productCategory: result.productCategory, ratings: result.ratings, productPrice: result.productPrice, productQuantity: result.productQuantity, productDiscount: result.productDiscount, productTax: result.productTax, productShippingCost: result.productShippingCost, productShippingWeight: result.productShippingWeight, productFeatures: result.productFeatures, productTags: result.productTags, productNumber: result.productNumber });
     }).catch(error => {
         if (error.code === 11000) {
             // Handle duplicate key error here
@@ -142,4 +142,50 @@ const getProductSequence = async () => {
         productSequence = 1;
     }
     return productSequence;
+}
+
+exports.doGetProduct = async (req, res) => {
+    let role = req.id.role;
+    const page = req.query.page;
+    const limit = req.query.limit;
+    const startIndex = (page - 1) * limit;
+    console.log(role, "role");
+    if (role === "merchant" || role === "Merchant") {
+        let merchantId = req.id.merchantId
+        let products = await ProductsModel.find({ merchantId: merchantId }).limit(limit).skip(startIndex);
+        let count = await ProductsModel.countDocuments({ merchantId: merchantId });
+        let pages = Math.ceil(count / limit);
+        if (products.length === 0) {
+            return res.status(200).json({ message: "No products found" });
+        }
+        return res.status(200).json({ status: "SUCCESS", products: products, pages: pages, currentPage: page, count: count });
+    }
+    if (role === "admin") {
+        let merchantId = req.body.merchantId
+        if (merchantId) {
+            let products = await ProductsModel.find({ merchantId: merchantId }).limit(limit).skip(startIndex);
+            let count = await ProductsModel.countDocuments({ merchantId: merchantId });
+            let pages = Math.ceil(count / limit);
+            if (products.length === 0) {
+                return res.status(400).json({ message: "No products found" });
+            }
+            return res.status(200).json({ status: "SUCCESS", products: products, pages: pages, currentPage: page, count: count });
+        } else {
+            let products = await ProductsModel.find({}).limit(limit).skip(startIndex);
+            let count = await ProductsModel.countDocuments({});
+            let pages = Math.ceil(count / limit);
+            if (products.length === 0) {
+                return res.status(400).json({ message: "No products found" });
+            }
+            return res.status(200).json({ status: "SUCCESS", products: products, pages: pages, currentPage: page, count: count });
+        }
+
+    }
+    let products = await ProductsModel.find({}).limit(limit).skip(startIndex);
+    let count = await ProductsModel.countDocuments({});
+    let pages = Math.ceil(count / limit);
+    if (products.length === 0) {
+        return res.status(400).json({ message: "No products found" });
+    }
+    return res.status(200).json({ status: "SUCCESS", products: products, pages: pages, currentPage: page, count: count });
 }
