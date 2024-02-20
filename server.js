@@ -11,6 +11,7 @@ var morgan = require('morgan');
 const autheticationRoutes = require("./routes/autheticationRoutes");
 const categoryRoutes = require("./routes/categoryRoute");
 const merchantRoutes = require("./routes/merchantRoutes");
+const productsRouters = require("./routes/productRoutes");
 dotenv.config({ path: "./.env" });
 connectDB();
 
@@ -29,6 +30,8 @@ app.get("/", (req, res) => {
 app.use('/', autheticationRoutes);
 app.use('/', categoryRoutes);
 app.use('/', merchantRoutes);
+app.use('/', productsRouters);
+
 
 //Starting server
 const startServer = async () => {

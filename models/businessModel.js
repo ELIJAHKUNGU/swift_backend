@@ -1,18 +1,8 @@
 const mongoose = require('mongoose');
-const categorySchema = new mongoose.Schema({
-    categoryName:{type:String, unique:true},
-    categoryDescription:{type:String},
-    categoryStatus:{type:String},
-   status:{type:String}
-   
-}, {
-    timestamps: true
-});
-
 const businessSchema = new mongoose.Schema({
-    businessName:{type:String, unique:true},
-    businessEmail:{type:String, unique:true},
-    businessPhone:{type:String, unique:true},
+    businessName:{type:String},
+    businessEmail:{type:String},
+    businessPhone:{type:String},
     businessAddress:{type:String},
     businessCity:{type:String},
     businessState:{type:String},

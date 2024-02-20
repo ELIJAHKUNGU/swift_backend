@@ -51,3 +51,43 @@ exports.doSendOtpCode = async (userEmail, otpCode, userName) => {
     }
     );
 }
+
+exports.doSendPassword = async (userEmail, password, userName) => {
+    let subject = "Your SWiftBuy password";
+
+    let transporter = nodemailer.createTransport(config);
+    let mailGenerator = new Mailgen({
+        theme: 'default',
+        product: {
+            logo: 'https://raw.githubusercontent.com/ELIJAHKUNGU/bnpl/development_branch/src/components/homeComponent/swiftAsset/logo1%404x%201.png?token=GHSAT0AAAAAACNDUPDMY5HQG27EI55RXLMCZNUZTWA',
+            name: 'SWiftBuy',
+            link: "http://swiftbuy.io/"
+        }
+    });
+    let emailBody = {
+        body: {
+            name: `${userName}`,
+            intro: `Your account has been created successfully in SwiftBuy use this details to login 
+           <br/>  <span style="color: #3130C6;">EMAIL : ${userEmail}</span> 
+           <br/>  <span style="color: #3130C6;">PASSWORD : ${password}</span>
+           `,  
+            outro: "If you have any questions or require further assistance, please don't hesitate to reach out to us.",
+        }
+    };
+    let emailTemplate = mailGenerator.generate(emailBody);
+    let message = {
+        from:senderAddress,
+        to: userEmail,
+        subject: subject,
+        html: emailTemplate
+    };
+    transporter.sendMail(message, (err, info) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log(info);
+
+        }
+    }
+    );
+}
