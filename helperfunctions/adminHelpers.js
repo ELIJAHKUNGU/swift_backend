@@ -1,5 +1,4 @@
 const adminsModel = require("../models/adminModel");
-const { doCreateUser } = require("./auth");
 
 exports.generateAdminNumber = async () => {
     let result = '';

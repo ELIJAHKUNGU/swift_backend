@@ -111,9 +111,6 @@ exports.doCreateMerchant = async (merchantData, req, res) => {
             return Promise.reject(error);
         });
     })
-
-
-    
 }
 
 exports.doGetMerchantByUserId = async (userId) => {
@@ -155,4 +152,16 @@ exports.doGetMerchantByUserId = async (userId, req, res) => {
        return res.status(404).json({ message: 'Merchant not found' });
     }
     return  merchant;
+}
+
+
+exports.doGetMerchant = async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const startIndex = (page - 1) * limit;
+
+    const merchant = await merchantModel.find().limit(limit).skip(startIndex);
+    const count = await merchantModel.countDocuments();
+    const totalPages = Math.ceil(count / limit);
+    return res.status(200).json({ merchant, totalPages, currentPage: page, count: count });
 }

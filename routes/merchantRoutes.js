@@ -1,6 +1,8 @@
 const express = require('express');
-const { doAddMerchant } = require('../helperfunctions/merchatHelpers');
+const { getMerchants, createMerchant } = require('../controllers/merchantController');
+const { userAuth } = require('../middleware/auth');
 const merchantRoutes = express.Router()
 
-merchantRoutes.post('/api/v1/swiftBuy/add_merchant',doAddMerchant)
+merchantRoutes.post('/api/v1/swiftBuy/add_merchant',createMerchant)
+merchantRoutes.get('/api/v1/swiftBuy/get_merchant',userAuth,getMerchants)
 module.exports = merchantRoutes
