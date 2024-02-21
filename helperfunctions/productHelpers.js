@@ -190,3 +190,17 @@ exports.doGetProduct = async (req, res) => {
     }
     return res.status(200).json({ status: "SUCCESS", products: products, pages: pages, currentPage: page, count: count });
 }
+
+
+exports.doGetProductById = async (req, res) => {
+    let productId = req.params?.productId
+    console.log(productId, "productId");
+    if (!productId) {
+        return res.status(400).json({ message: "Product Id is required" });
+    }
+    let product = await ProductsModel.findOne({ _id: new ObjectId(productId) });
+    if (!product) {
+        return res.status(400).json({ message: "Product does not exist" });
+    }
+    return res.status(200).json({ status: "SUCCESS", product: product });
+}
