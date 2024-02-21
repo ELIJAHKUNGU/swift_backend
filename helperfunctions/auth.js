@@ -120,20 +120,26 @@ exports.saveOtpCode = async (userEmail, otpCode) => {
 
 
 exports.verifyOtpCode = async (req, res) => {
-    let { userEmail, otpCode } = req.body;
+    console.log(req.body, "req.body");
+    let { userEmail, otp } = req.body;
+    console.log(userEmail, otp, "userEmail, otp");
     
-    if (!userEmail || !otpCode) {
-        return res.status(400).json({ message: 'Please enter all fields' });
+    if (!userEmail) {
+        return res.status(400).json({ message: 'User Email is required' });
     }
-    if (otpCode.length !== 6) {
+    if (!otp) {
+        return res.status(400).json({ message: 'Otp  is required' });
+    }
+    if (otp.length !== 6) {
         return res.status(400).json({ message: 'Invalid OTP Code' });
     }
-    if (isNaN(otpCode)) {
+    if (isNaN(otp)) {
         return res.status(400).json({ message: 'Invalid OTP Code' });
     }
     if(userEmail){
         userEmail = userEmail.replace(/\s/g, '');   
     }
+    console.log(userEmail, otp, "userEmail, otp");
     try {
         const otpDetails = await verificationOtpCode.findOne({ userEmail: userEmail });
         if (!otpDetails) {
