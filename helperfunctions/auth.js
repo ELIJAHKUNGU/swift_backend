@@ -148,7 +148,7 @@ exports.verifyOtpCode = async (req, res) => {
         if (otpDetails.otpCodeStatus === "Verified") {
             return res.status(400).json({ message: 'OTP Code already verified' });
         }
-        if (otpDetails.otpCode !== otpCode) {
+        if (otpDetails.otpCode !== otp) {
             return res.status(400).json({ message: 'Invalid OTP Code' });
         }
         if (otpDetails.expiryTime < Date.now()) {
