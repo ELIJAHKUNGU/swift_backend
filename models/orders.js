@@ -43,20 +43,22 @@ const ordersSchema = new mongoose.Schema({
     customerAddress:{type:String},
     customerCity:{type:String},
     customerState:{type:String},
+    customerNumber:{type:String},
+    userId:{type:String},
+    customerId:{type:String},
     customerZipCode:{type:String},
     paymentType:{type:String},
     invoiceNumbers:[invoiceNumbersSchema],
     orderStatus:{type:String, default: "pending"},
     orderDate:{type:String, default: Date.now},
     orderAmount:{type:String},
-    orderTax:{type:String},
-    orderShippingCost:{type:String},
-    orderShippingWeight:{type:String},
-    orderDiscount:{type:String},
-    orderTotal:{type:String},
-    orderNote:{type:String},
-    orderCurrency:{type:String},
-    orderPaymentStatus:{type:String},
+    orderTax:{type:String, default: "0"},
+    orderShippingCost:{type:String, default: "0"},
+    orderShippingWeight:{type:String, default: "0"},
+    orderDiscount:{type:String, default: "0"},
+    orderNote:{type:String, default: "Customer order note"},
+    orderCurrency:{type:String, default: "ZMW"},
+    orderPaymentStatus:{type:String, default: "Unpaid"},
     orderPaymentMethod:{type:String},
     orderPaymentDate:{type:String},
     orderPaymentAmount:{type:String},
@@ -73,5 +75,5 @@ const ordersSchema = new mongoose.Schema({
     timestamps: true
 });
 
-const customer = mongoose.model('customer' , ordersSchema);
-module.exports = customer;
+const orders = mongoose.model('orders' , ordersSchema);
+module.exports = orders;

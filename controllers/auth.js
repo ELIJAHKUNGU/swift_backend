@@ -56,12 +56,12 @@ exports.LoginUser = async (req, res) => {
         let merchantDeatils = {}
         if (user.role === "Customer") {
             customerDeatils = await doGetCustomerByUserId(user._id, req, res);
-            const token = jwt.sign({id: user._id,userId:user._id,email: user.email,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country, customerId:customerDeatils?._id }, process.env.JWT_SECRET, { expiresIn: "1hr" });
+            const token = jwt.sign({id: user._id,userId:user._id,email: user.userEmail,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country, customerId:customerDeatils?._id, customerNumber: customerDeatils?.customerNumber}, process.env.JWT_SECRET, { expiresIn: "10hr" });
             return res.status(200).json({status:"Success", message:"user logged in successfully", token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country, customerId:customerDeatils?._id });
         }else if (user.role === "Admin") {
             adminDeatils = await doGetAdminByUserId(user._id, req, res);
             console.log(adminDeatils, "adminDeatils");
-            const token = jwt.sign({id: user._id,userId:user._id,email: user.email,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country, adminId:adminDeatils?._id }, process.env.JWT_SECRET, { expiresIn: "1hr" });
+            const token = jwt.sign({id: user._id,userId:user._id,email: user.userEmail,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country, adminId:adminDeatils?._id }, process.env.JWT_SECRET, { expiresIn: "10hr" });
             return res.status(200).json({ status:"Success", message:"user logged in successfully",token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country, adminId:adminDeatils?._id });
         }else if (user.role === "Merchant") {
             merchantDeatils = await doGetMerchantByUserId(user._id, req, res);
@@ -69,11 +69,11 @@ exports.LoginUser = async (req, res) => {
             console.log(businessDetails, "businessDetails");
             let businessNumber = businessDetails[0]?.businessNumber
             console.log(businessNumber, "businessNumber");
-            const token = jwt.sign({id: user._id,userId:user._id,email: user.email,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country, merchantId:merchantDeatils?._id, merchantNumber: merchantDeatils?.merchantNumber,businessNumber: businessNumber}, process.env.JWT_SECRET, { expiresIn: "1hr" });
+            const token = jwt.sign({id: user._id,userId:user._id,email: user.userEmail,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country, merchantId:merchantDeatils?._id, merchantNumber: merchantDeatils?.merchantNumber,businessNumber: businessNumber}, process.env.JWT_SECRET, { expiresIn: "10hr" });
             return res.status(200).json({status:"Success", message:"user logged in successfully", token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country, merchantId:merchantDeatils?._id, merchantNumber: merchantDeatils?.merchantNumber, businessNumber: businessNumber });
 
         }else {
-            const token = jwt.sign({id: user._id,userId:user._id,email: user.email,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country }, process.env.JWT_SECRET, { expiresIn: "1hr" });
+            const token = jwt.sign({id: user._id,userId:user._id,email: user.userEmail,role: user.role,phoneNumber: user.phoneNumber,firstName: user.firstName,lastName: user.lastName,address: user.address,city: user.city,state: user.state,zipCode: user.zipCode,country: user.country }, process.env.JWT_SECRET, { expiresIn: "10hr" });
             return res.status(200).json({status:"Success", message:"user logged in successfully", token, userId: user._id, role: user.role, email: user.email, phoneNumber: user.phoneNumber, firstName: user.firstName, lastName: user.lastName, address: user.address, city: user.city, state: user.state, zipCode: user.zipCode, country: user.country });
         
         }
@@ -96,7 +96,7 @@ exports.LoginUser = async (req, res) => {
 //         } else {
 //             const secret = process.env.JWT_SECRET + user.password;
 //             const token = jwt.sign({ email: user.email, id: user._id }, secret, {
-//                 expiresIn: "1hr"
+//                 expiresIn: "10hr"
 //             });
 
 //             const link = `http://localhost:5000/api/auth/reset-password/${user._id}/${token}`;
