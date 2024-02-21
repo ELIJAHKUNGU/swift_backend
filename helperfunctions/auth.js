@@ -67,7 +67,7 @@ exports.doCreateUser = async (firstName, secondName, userEmail, userPhone, passw
 
 
 exports.sendVerificationCode = async (req, res) => {
-    const { userEmail, userName } = req.body;
+    let { userEmail, userName } = req.body;
     const emptyFields = [];
     if (!userEmail) {
         emptyFields.push('userEmail');
@@ -81,6 +81,9 @@ exports.sendVerificationCode = async (req, res) => {
     if (emptyFields.length > 0) return HandleResponseInstance.badRequestResponse(res, `The following fields are required: ${emptyFields.join(', ')}`);
 
     const otpCode = await this.generateOTP();
+    if(userEmail){
+        userEmail = userEmail.replace(/\s/g, '');   
+    }
     const saveResult = await this.saveOtpCode(userEmail, otpCode);
 
 
@@ -130,18 +133,14 @@ exports.verifyOtpCode = async (req, res) => {
     if (!otp) {
         return res.status(400).json({ message: 'Otp  is required' });
     }
-    if (otp.length !== 6) {
-        return res.status(400).json({ message: 'Invalid OTP Code' });
-    }
-    if (isNaN(otp)) {
-        return res.status(400).json({ message: 'Invalid OTP Code' });
-    }
+    
     if(userEmail){
         userEmail = userEmail.replace(/\s/g, '');   
     }
     console.log(userEmail, otp, "userEmail, otp");
     try {
         const otpDetails = await verificationOtpCode.findOne({ userEmail: userEmail });
+        console.log(otpDetails, "otpDetails");  
         if (!otpDetails) {
             return res.status(400).json({ message: 'Invalid OTP Code' });
         }
