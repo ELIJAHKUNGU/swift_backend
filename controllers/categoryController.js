@@ -1,4 +1,4 @@
-const { doCreateCategory, doGetCategories } = require("../helperfunctions/categoryHelpers");
+const { doCreateCategory, doGetCategories, doGetCategoryMerchantsAdsProducts } = require("../helperfunctions/categoryHelpers");
 
 exports.createCategory = async (req, res) => {
     const { categoryName, categoryDescription, categoryImage } = req.body;
@@ -16,4 +16,9 @@ exports.createCategory = async (req, res) => {
 
 exports.getCategories = async (req, res) => {
     await doGetCategories(req, res);
+}
+
+
+exports.getCategoryMerchantsAdsProducts = async (req, res) => {
+    await doGetCategoryMerchantsAdsProducts(req, res);
 }
