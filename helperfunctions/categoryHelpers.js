@@ -1,4 +1,5 @@
 const Category = require("../models/categoryModel");
+const Merchants = require("../models/merchants");
 
 exports.doCreateCategory = async (categoryName, categoryDescription, categoryImage, req, res) => {
     let categoryExist = await Category.findOne({ categoryName: categoryName });
@@ -38,7 +39,7 @@ exports.doGetCategoryMerchantsAdsProducts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const startIndex = (page - 1) * limit;
-    const category = await Category.aggregate([{
+    let  categories = await Category.aggregate([{
         $lookup: {
             from: "products",
             let: {
@@ -76,13 +77,37 @@ exports.doGetCategoryMerchantsAdsProducts = async (req, res) => {
             categoryName: 1,
             categoryDescription: 1,
             categoryImage: 1,
-            productsCount: 1
+            productsCount: 1,
+            merchants:[]
         }
     }
     ]).limit(limit).skip(startIndex);
+
+    for (let i = 0; i < categories.length; i++) {
+        let categoryId= categories[i]._id.toString();
+        // console.log(categoryId, "categoryId");
+        let merchants = await Merchants.aggregate([
+            {
+                $match: {
+                    category: categoryId
+                }
+            },{
+                $project: {
+                    merchantName: 1,
+
+                }
+            }
+        ]);
+
+
+        categories[i].merchants = merchants;
+    }
+
+
+
     const count = await Category.countDocuments();
     const totalPages = Math.ceil(count / limit);
-    return res.status(200).json({ category, totalPages, currentPage: page });
+    return res.status(200).json({ categories, totalPages, currentPage: page });
 
 
 }
