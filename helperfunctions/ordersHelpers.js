@@ -13,7 +13,7 @@ exports.doCreateOrder = async (req, res) => {
 
     let orderSequence = await generateOrderSequence();
     let orderNumber = "ORD_" + orderSequence;
-    
+
     let newProducts = []
     await Promise.all(products.map(async (product) => {
         let productDetails = await Products.findOne({ _id: new ObjectId(product.productId) });
@@ -75,7 +75,7 @@ const createNewOrder = async (orderData, req, res) => {
     newOrder.save()
         .then(async result => {
             res.status(200).json({ status: "Success", message: 'Order created successfully', result: result });
-        
+
         })
         .catch(err => { res.status(500).json({ error: err }); });
 
@@ -93,3 +93,98 @@ const generateOrderSequence = async () => {
     return orderSequence;
 }
 
+
+exports.doGetOrders = async (req, res) => {
+    let role = req.id.role;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const status = req.query?.status || "all";
+    const startIndex = (page - 1) * limit;
+    let count
+    console.log(role, "role");
+    if (role === "customer" || role === "Customer") {
+        let customerId = req.id.customerId
+        let orders
+        if (status === "all") {
+            orders = await OrdersModel.aggregate([{ $match: { customerId: customerId } }, { $sort: { createdAt: -1 } }, { $skip: startIndex }, { $limit: limit }]);
+            count = await OrdersModel.countDocuments({ customerId: customerId });
+        } else {
+            orders = await OrdersModel.aggregate([{ $match: { customerId: customerId, orderStatus: status } }, { $sort: { createdAt: -1 } }, { $skip: startIndex }, { $limit: limit }]);
+            count = await OrdersModel.countDocuments({ customerId: customerId, orderStatus: status });
+        }
+        let pages = Math.ceil(count / limit);
+        return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
+    }
+    if (role === "admin") {
+        let customerId = req.query?.customerId
+        let merchantId = req.query?.merchantId
+        if (customerId) {
+            if (status === "all") {
+                let orders = await OrdersModel.find({ customerId: customerId }).limit(limit).skip(startIndex);
+                let count = await OrdersModel.countDocuments({ customerId: customerId });
+                let pages = Math.ceil(count / limit);
+                if (orders.length === 0) {
+                    return res.status(400).json({ message: "No orders found" });
+                }
+                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
+            } else {
+                let orders = await OrdersModel.aggregate([{ $match: { customerId: customerId, orderStatus: status } }, { $sort: { createdAt: -1 } }, { $skip: startIndex }, { $limit: limit }]);
+                let count = await OrdersModel.countDocuments({ customerId: customerId, orderStatus: status });
+                let pages = Math.ceil(count / limit);
+                if (orders.length === 0) {
+                    return res.status(400).json({ message: "No orders found" });
+                }
+                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
+            }
+        } else if (merchantId) {
+            if (status === "all") {
+                let orders = await OrdersModel.find({ merchantId: merchantId }).limit(limit).skip(startIndex);
+                let count = await OrdersModel.countDocuments({ merchantId: merchantId });
+                let pages = Math.ceil(count / limit);
+                if (orders.length === 0) {
+                    return res.status(400).json({ message: "No orders found" });
+                }
+                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
+            } else {
+                let orders = await OrdersModel.aggregate([{ $match: { merchantId: merchantId, orderStatus: status } }, { $sort: { createdAt: -1 } }, { $skip: startIndex }, { $limit: limit }]);
+                let count = await OrdersModel.countDocuments({ merchantId: merchantId, orderStatus: status });
+                let pages = Math.ceil(count / limit);
+                if (orders.length === 0) {
+                    return res.status(400).json({ message: "No orders found" });
+                }
+                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
+            }
+        }
+        else {
+            if (status === "all") {
+                let orders = await OrdersModel.find({}).limit(limit).skip(startIndex);
+                let count = await OrdersModel.countDocuments({});
+                let pages = Math.ceil(count / limit);
+                if (orders.length === 0) {
+                    return res.status(400).json({ message: "No orders found" });
+                }
+                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
+            } else {
+                let orders = await OrdersModel.aggregate([{ $match: { orderStatus: status } }, { $sort: { createdAt: -1 } }, { $skip: startIndex }, { $limit: limit }]);
+                let count = await OrdersModel.countDocuments({ orderStatus: status });
+                let pages = Math.ceil(count / limit);
+                if (orders.length === 0) {
+                    return res.status(400).json({ message: "No orders found" });
+                }
+                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
+            }
+        }
+
+    }
+
+    if (role === "merchant" || role === "Merchant") {
+        let merchantId = req.id.merchantId
+        let orders = await OrdersModel.find({ merchantId: merchantId }).limit(limit).skip(startIndex);
+        let count = await OrdersModel.countDocuments({ merchantId: merchantId });
+        let pages = Math.ceil(count / limit);
+        if (orders.length === 0) {
+            return res.status(400).json({ message: "No orders found" });
+        }
+        return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
+    }
+}
