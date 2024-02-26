@@ -16,20 +16,42 @@ exports.doCreateOrder = async (req, res) => {
 
     let newProducts = []
     await Promise.all(products.map(async (product) => {
+        if (product?.productQuantity < 1) {
+            return res.status(400).json({ message: "Product quantity cannot be less than 1" });
+            
+        }
+        if (!product.productId) {
+            return res.status(400).json({ message: "Product Id is required" });
+        }
         let productDetails = await Products.findOne({ _id: new ObjectId(product.productId) });
         if (!productDetails) {
             return res.status(400).json({ message: "Product does not exist" });
         }
-        if (productDetails.productQuantity < product.quantity) {
+        if (productDetails.productQuantity < product.productQuantity) {
             return res.status(400).json({ message: "Product quantity is less than the quantity requested" });
         }
+        console.log(productDetails, "productDetails");
+
 
         let productObj = {
             productId: product.productId,
             productName: productDetails.productName,
             productPrice: productDetails.productPrice,
             productQuantity: product.productQuantity,
-            productTotal: parseInt(productDetails.productPrice) * parseInt(product.productQuantity)
+            productTotal: parseInt(productDetails.productPrice) * parseInt(product.productQuantity),
+            productDescription: productDetails.productDescription,
+            productBrand: productDetails.productBrand,
+            merchantId: productDetails.merchantId,
+            merchantNumber: productDetails.merchantNumber,
+            productCategory: productDetails.productCategory,
+            productStatus: productDetails.productStatus,
+            productDiscount: productDetails.productDiscount,
+            productTax: productDetails.productTax,
+            productShippingCost: productDetails.productShippingCost,
+            productShippingWeight: productDetails.productShippingWeight,
+            productTags: productDetails.productTags,
+            productNumber: productDetails.productNumber,
+
         }
 
         newProducts.push(productObj);
@@ -43,7 +65,7 @@ exports.doCreateOrder = async (req, res) => {
     let orderData = {
         orderNumber: orderNumber,
         orderSequence: orderSequence,
-        products: products,
+        products: newProducts,
         customerName: req.id.firstName + " " + req.id.lastName,
         customerEmail: req.id.email,
         customerPhone: req.id.phoneNumber,

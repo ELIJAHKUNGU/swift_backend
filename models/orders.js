@@ -7,8 +7,7 @@ const productsSchema = new mongoose.Schema({
     merchantId:{type:String},
     merchantNumber:{type:String},
     productCategory:{type:String},
-    ratings:{type:String},
-    productPrice:{type:String},
+    productPrice:{type:String, default: "0"},
     productStatus:{type:String},
     productQuantity:{type:String},
     productDiscount:{type:String},
@@ -17,6 +16,8 @@ const productsSchema = new mongoose.Schema({
     productShippingWeight:{type:String},
     productTags:{type:String},
     productNumber:{type:String},
+    productId:{type:String},
+    productTotal:{type:String},
 
 }, {
     timestamps: true
