@@ -18,7 +18,7 @@ exports.doCreateOrder = async (req, res) => {
     await Promise.all(products.map(async (product) => {
         if (product?.productQuantity < 1) {
             return res.status(400).json({ message: "Product quantity cannot be less than 1" });
-            
+
         }
         if (!product.productId) {
             return res.status(400).json({ message: "Product Id is required" });
@@ -160,53 +160,506 @@ exports.doGetOrders = async (req, res) => {
             }
         } else if (merchantId) {
             if (status === "all") {
-                let orders = await OrdersModel.find({ merchantId: merchantId }).limit(limit).skip(startIndex);
-                let count = await OrdersModel.countDocuments({ merchantId: merchantId });
-                let pages = Math.ceil(count / limit);
-                if (orders.length === 0) {
-                    return res.status(400).json({ message: "No orders found" });
-                }
-                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
-            } else {
-                let orders = await OrdersModel.aggregate([{ $match: { merchantId: merchantId, orderStatus: status } }, { $sort: { createdAt: -1 } }, { $skip: startIndex }, { $limit: limit }]);
-                let count = await OrdersModel.countDocuments({ merchantId: merchantId, orderStatus: status });
-                let pages = Math.ceil(count / limit);
-                if (orders.length === 0) {
-                    return res.status(400).json({ message: "No orders found" });
-                }
-                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
-            }
-        }
-        else {
-            if (status === "all") {
-                let orders = await OrdersModel.find({}).limit(limit).skip(startIndex);
-                let count = await OrdersModel.countDocuments({});
-                let pages = Math.ceil(count / limit);
-                if (orders.length === 0) {
-                    return res.status(400).json({ message: "No orders found" });
-                }
-                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
-            } else {
-                let orders = await OrdersModel.aggregate([{ $match: { orderStatus: status } }, { $sort: { createdAt: -1 } }, { $skip: startIndex }, { $limit: limit }]);
-                let count = await OrdersModel.countDocuments({ orderStatus: status });
-                let pages = Math.ceil(count / limit);
-                if (orders.length === 0) {
-                    return res.status(400).json({ message: "No orders found" });
-                }
-                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
-            }
-        }
+                let orders = await OrdersModel.aggregate(
+                    [{
+                        $unwind: {
+                            path: "$products"
+                        }
+                    }, {
+                        $match: {
+                            "products.merchantId": merchantId
+                        }
+                    }, {
+                        $group: {
+                            _id: "$orderNumber",
+                            products: { "$push": "$products" },
+                            customerName: { "$first": "$customerName" },
+                            customerEmail: { "$first": "$customerEmail" },
+                            customerPhone: { "$first": "$customerPhone" },
+                            orderStatus: { "$first": "$orderStatus" }
+                        }
+                    }, {
+                        $addFields: {
+                            products: {
+                                $map: {
+                                    "input": "$products",
+                                    "as": "product",
+                                    "in": {
+                                        "$mergeObjects": ["$$product", {
+                                            "productTotal": {
+                                                "$toDouble": "$$product.productTotal"
+                                            }
+                                        }]
+                                    }
+                                }
+                            }
+                        }
+                    }, {
+                        $addFields: {
+                            "totalOrderAmount": {
+                                "$sum": "$products.productTotal"
+                            }
+                        }
+                    },
+                    {
+                        $sort: {
+                            createdAt: -1
+                        }
+                    }, {
+                        $skip: startIndex
+                    }, {
+                        $limit: limit
+                    }
+                    ]
+                )
 
+                let count = await OrdersModel.aggregate(
+                    [{
+                        $unwind: {
+                            path: "$products"
+                        }
+                    }, {
+                        $match: {
+                            "products.merchantId": merchantId
+                        }
+                    }, {
+                        $group: {
+                            _id: "$orderNumber",
+                            products: { "$push": "$products" },
+                            customerName: { "$first": "$customerName" },
+                            customerEmail: { "$first": "$customerEmail" },
+                            customerPhone: { "$first": "$customerPhone" },
+                        }
+                    }, {
+                        $addFields: {
+                            products: {
+                                $map: {
+                                    "input": "$products",
+                                    "as": "product",
+                                    "in": {
+                                        "$mergeObjects": ["$$product", {
+                                            "productTotal": {
+                                                "$toDouble": "$$product.productTotal"
+                                            }
+                                        }]
+                                    }
+                                }
+                            }
+                        }
+                    }, {
+                        $addFields: {
+                            "totalOrderAmount": {
+                                "$sum": "$products.productTotal"
+                            }
+                        }
+                    },
+                    {
+                        $count: "total"
+                    }
+                    ]
+                )
+                let pages = Math.ceil(count / limit);
+                if (orders.length === 0) {
+                    return res.status(400).json({ message: "No orders found" });
+                }
+                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
+
+            } else {
+                let orders = await OrdersModel.aggregate([
+                    {
+                        $unwind: {
+                            path: "$products"
+                        }
+                    }, {
+                        $match: {
+                            "products.merchantId": merchantId,
+                            orderStatus: status
+                        }
+                    }, {
+                        $group: {
+                            _id: "$orderNumber",
+                            products: { "$push": "$products" },
+                            customerName: { "$first": "$customerName" },
+                            customerEmail: { "$first": "$customerEmail" },
+                            customerPhone: { "$first": "$customerPhone" },
+                            orderStatus: { "$first": "$orderStatus" }
+
+                        }
+                    }, {
+                        $addFields: {
+                            products: {
+                                $map: {
+                                    "input": "$products",
+                                    "as": "product",
+                                    "in": {
+                                        "$mergeObjects": ["$$product", {
+                                            "productTotal": {
+                                                "$toDouble": "$$product.productTotal"
+                                            }
+                                        }]
+                                    }
+                                }
+                            }
+                        }
+                    }, {
+                        $addFields: {
+                            "totalOrderAmount": {
+                                "$sum": "$products.productTotal"
+                            }
+                        }
+                    },
+                    {
+                        $sort: {
+                            createdAt: -1
+                        }
+                    }, {
+                        $skip: startIndex
+                    }, {
+                        $limit: limit
+                    }
+                ]
+                )
+                let count = await OrdersModel.aggregate(
+                    [{
+                        $unwind: {
+                            path: "$products"
+                        }
+                    }, {
+                        $match: {
+                            "products.merchantId": merchantId,
+                            orderStatus: status
+                        }
+                    }, {
+                        $group: {
+                            _id: "$orderNumber",
+                            products: { "$push": "$products" },
+                            customerName: { "$first": "$customerName" },
+                            customerEmail: { "$first": "$customerEmail" },
+                            customerPhone: { "$first": "$customerPhone" },
+                        }
+                    }, {
+                        $addFields: {
+                            products: {
+                                $map: {
+                                    "input": "$products",
+                                    "as": "product",
+                                    "in": {
+                                        "$mergeObjects": ["$$product", {
+                                            "productTotal": {
+                                                "$toDouble": "$$product.productTotal"
+                                            }
+                                        }]
+                                    }
+                                }
+                            }
+                        }
+                    }, {
+                        $addFields: {
+                            "totalOrderAmount": {
+                                "$sum": "$products.productTotal"
+                            }
+                        }
+                    },
+                    {
+                        $count: "total"
+                    }
+                    ]
+                )
+                let pages = Math.ceil(count / limit);
+                if (orders.length === 0) {
+                    return res.status(400).json({ message: "No orders found" });
+                }
+                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
+            }
+        } else {
+            if (status === "all") {
+                let orders = await OrdersModel.aggregate(
+                    [{
+                        $unwind: {
+                            "path": "$products"
+                        }
+                    }, {
+                        $group: {
+                            "_id": {
+                                "orderNumber": "$orderNumber",
+                                "merchantId": "$products.merchantId",
+                                "merchantNumber": "$products.merchantNumber",
+                                "merchantName": ""
+                            },
+                            "products": {
+                                "$push": "$products"
+                            }
+                        }
+                    }, {
+                        $group: {
+                            "_id": "$_id.orderNumber",
+                            "products": {
+                                "$push": {
+                                    "merchantId": "$_id.merchantId",
+                                    "merchantNumber": "$_id.merchantNumber",
+                                    "merchantName": "",
+                                    "products": "$products"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        $sort: { createdAt: -1 }
+                    },
+                    {
+                        $skip: startIndex
+                    },
+                    {
+                        $limit: limit
+                    }
+                    ])
+
+                let count = await OrdersModel.aggregate(
+                    [{
+                        $unwind: {
+                            "path": "$products"
+                        }
+                    }, {
+                        $group: {
+                            "_id": {
+                                "orderNumber": "$orderNumber",
+                                "merchantId": "$products.merchantId",
+                                "merchantNumber": "$products.merchantNumber",
+                                "merchantName": ""
+                            },
+                            "products": {
+                                "$push": "$products"
+                            }
+                        }
+                    }, {
+                        $group: {
+                            "_id": "$_id.orderNumber",
+                            "products": {
+                                "$push": {
+                                    "merchantId": "$_id.merchantId",
+                                    "merchantNumber": "$_id.merchantNumber",
+                                    "merchantName": "",
+                                    "products": "$products"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        $count: "total"
+                    }
+
+                    ])
+                let pages = Math.ceil(count / limit);
+                if (orders.length === 0) {
+                    return res.status(400).json({ message: "No orders found" });
+                }
+
+                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
+            } else {
+                let orders = await OrdersModel.aggregate(
+                    [{
+                        $match: { orderStatus: status }
+                    },
+                    {
+                        $unwind: {
+                            "path": "$products"
+                        }
+                    }, {
+                        $group: {
+                            "_id": {
+                                "orderNumber": "$orderNumber",
+                                "merchantId": "$products.merchantId",
+                                "merchantNumber": "$products.merchantNumber",
+                                "merchantName": ""
+                            },
+                            "products": {
+                                "$push": "$products"
+                            }
+                        }
+                    }, {
+                        $group: {
+                            "_id": "$_id.orderNumber",
+                            "products": {
+                                "$push": {
+                                    "merchantId": "$_id.merchantId",
+                                    "merchantNumber": "$_id.merchantNumber",
+                                    "merchantName": "",
+                                    "products": "$products"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        $sort: { createdAt: -1 }
+                    },
+                    {
+                        $skip: startIndex
+                    },
+                    {
+                        $limit: limit
+                    }
+                    ])
+
+                let count = await OrdersModel.aggregate(
+                    [
+                        { $match: { orderStatus: status } },
+                        {
+                            $unwind: {
+                                "path": "$products"
+                            }
+                        }, {
+                            $group: {
+                                "_id": {
+                                    "orderNumber": "$orderNumber",
+                                    "merchantId": "$products.merchantId",
+                                    "merchantNumber": "$products.merchantNumber",
+                                    "merchantName": ""
+                                },
+                                "products": {
+                                    "$push": "$products"
+                                }
+                            }
+                        }, {
+                            $group: {
+                                "_id": "$_id.orderNumber",
+                                "products": {
+                                    "$push": {
+                                        "merchantId": "$_id.merchantId",
+                                        "merchantNumber": "$_id.merchantNumber",
+                                        "merchantName": "",
+                                        "products": "$products"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            $count: "total"
+                        }
+
+                    ])
+
+                let pages = Math.ceil(count / limit);
+                if (orders.length === 0) {
+                    return res.status(400).json({ message: "No orders found" });
+                }
+                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
+
+
+            }
+
+
+
+        }
     }
 
     if (role === "merchant" || role === "Merchant") {
         let merchantId = req.id.merchantId
-        let orders = await OrdersModel.find({ merchantId: merchantId }).limit(limit).skip(startIndex);
-        let count = await OrdersModel.countDocuments({ merchantId: merchantId });
+        let orders = await OrdersModel.aggregate([
+            {
+                $unwind: {
+                    path: "$products"
+                }
+            }, {
+                $match: {
+                    "products.merchantId": merchantId
+                }
+            }, {
+                $group: {
+                    _id: "$orderNumber",
+                    products: { "$push": "$products" },
+                    customerName: { "$first": "$customerName" },
+                    customerEmail: { "$first": "$customerEmail" },
+                    customerPhone: { "$first": "$customerPhone" },
+                    orderStatus: { "$first": "$orderStatus" }
+
+                }
+            }, {
+                $addFields: {
+                    products: {
+                        $map: {
+                            "input": "$products",
+                            "as": "product",
+                            "in": {
+                                "$mergeObjects": ["$$product", {
+                                    "productTotal": {
+                                        "$toDouble": "$$product.productTotal"
+                                    }
+                                }]
+                            }
+                        }
+                    }
+                }
+            }, {
+                $addFields: {
+                    "totalOrderAmount": {
+                        "$sum": "$products.productTotal"
+                    }
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }, {
+                $skip: startIndex
+            }, {
+                $limit: limit
+            }
+        ])
+        
+        let count = await OrdersModel.aggregate(
+            [{
+                $unwind: {
+                    path: "$products"
+                }
+            }, {
+                $match: {
+                    "products.merchantId": merchantId
+                }
+            }, {
+                $group: {
+                    _id: "$orderNumber",
+                    products: { "$push": "$products" },
+                    customerName: { "$first": "$customerName" },
+                    customerEmail: { "$first": "$customerEmail" },
+                    customerPhone: { "$first": "$customerPhone" },
+                    orderStatus: { "$first": "$orderStatus" }
+
+                }
+            }, {
+                $addFields: {
+                    products: {
+                        $map: {
+                            "input": "$products",
+                            "as": "product",
+                            "in": {
+                                "$mergeObjects": ["$$product", {
+                                    "productTotal": {
+                                        "$toDouble": "$$product.productTotal"
+                                    }
+                                }]
+                            }
+                        }
+                    }
+                }
+            }, {
+                $addFields: {
+                    "totalOrderAmount": {
+                        "$sum": "$products.productTotal"
+                    }
+                }
+            },
+            {
+                $count: "total"
+            }
+            ]
+        )
         let pages = Math.ceil(count / limit);
         if (orders.length === 0) {
             return res.status(400).json({ message: "No orders found" });
         }
-        return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
+        return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count[0] });
+
     }
+
 }
