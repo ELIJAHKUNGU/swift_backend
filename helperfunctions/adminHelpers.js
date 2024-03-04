@@ -1,4 +1,5 @@
 const adminsModel = require("../models/adminModel");
+const ordersModel = require("../models/orders");
 
 exports.generateAdminNumber = async () => {
     let result = '';
@@ -46,4 +47,17 @@ exports.doGetAdminByUserId = async (userId) => {
         .catch(err => {
             return err;
         });
+}
+
+
+
+
+exports.doApproveRejectOrders = async (data, req, res) => {
+    const { orderNumber, orderStatus } = data;
+    let order = await ordersModel.findOne({ orderNumber: orderNumber });
+    if (!order) {
+        return res.status(400).json({ message: 'Invalid order number' });
+    }
+    let updateOrder = await ordersModel.findOneAndUpdate({ orderNumber: orderNumber }, { orderStatus: orderStatus }, { new: true });
+    return res.status(200).json({ message: 'Order updated successfully', result: updateOrder });
 }
