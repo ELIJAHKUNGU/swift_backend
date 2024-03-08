@@ -70,6 +70,7 @@ const ordersSchema = new mongoose.Schema({
     orderPaymentRefundTransactionId:{type:String},
     orderPaymentRefundCurrency:{type:String},
     orderPaymentRefundNote:{type:String},
+    adminApproveOrderNumber:{type:String},
     
 
 }, {

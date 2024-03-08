@@ -1,3 +1,4 @@
+const Merchants = require("../models/merchants");
 const OrdersModel = require("../models/orders");
 const Products = require("../models/products");
 const { ObjectId } = require('mongodb'); // Import ObjectId from mongodb
@@ -137,7 +138,7 @@ exports.doGetOrders = async (req, res) => {
         let pages = Math.ceil(count / limit);
         return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
     }
-    if (role === "admin") {
+    if (role === "admin" || role === "Admin") {
         let customerId = req.query?.customerId
         let merchantId = req.query?.merchantId
         if (customerId) {
@@ -373,36 +374,8 @@ exports.doGetOrders = async (req, res) => {
             }
         } else {
             if (status === "all") {
-                let orders = await OrdersModel.aggregate(
-                    [{
-                        $unwind: {
-                            "path": "$products"
-                        }
-                    }, {
-                        $group: {
-                            "_id": {
-                                "orderNumber": "$orderNumber",
-                                "merchantId": "$products.merchantId",
-                                "merchantNumber": "$products.merchantNumber",
-                                "merchantName": ""
-                            },
-                            "products": {
-                                "$push": "$products"
-                            }
-                        }
-                    }, {
-                        $group: {
-                            "_id": "$_id.orderNumber",
-                            "products": {
-                                "$push": {
-                                    "merchantId": "$_id.merchantId",
-                                    "merchantNumber": "$_id.merchantNumber",
-                                    "merchantName": "",
-                                    "products": "$products"
-                                }
-                            }
-                        }
-                    },
+                
+                let orders = await OrdersModel.aggregate([
                     {
                         $sort: { createdAt: -1 }
                     },
@@ -412,49 +385,99 @@ exports.doGetOrders = async (req, res) => {
                     {
                         $limit: limit
                     }
-                    ])
-
-                let count = await OrdersModel.aggregate(
-                    [{
-                        $unwind: {
-                            "path": "$products"
-                        }
-                    }, {
-                        $group: {
-                            "_id": {
-                                "orderNumber": "$orderNumber",
-                                "merchantId": "$products.merchantId",
-                                "merchantNumber": "$products.merchantNumber",
-                                "merchantName": ""
-                            },
-                            "products": {
-                                "$push": "$products"
-                            }
-                        }
-                    }, {
-                        $group: {
-                            "_id": "$_id.orderNumber",
-                            "products": {
-                                "$push": {
-                                    "merchantId": "$_id.merchantId",
-                                    "merchantNumber": "$_id.merchantNumber",
-                                    "merchantName": "",
-                                    "products": "$products"
-                                }
-                            }
-                        }
-                    },
-                    {
-                        $count: "total"
-                    }
-
-                    ])
+                ])
+                let count = await OrdersModel.countDocuments();
                 let pages = Math.ceil(count / limit);
                 if (orders.length === 0) {
                     return res.status(400).json({ message: "No orders found" });
                 }
 
-                return res.status(200).json({ status: "SUCCESS", orders: orders, pages: pages, currentPage: page, count: count });
+                let newOrders = []
+
+
+                for (let i = 0; i < orders.length; i++) {
+                    let newOrder = {}
+                    let merchants = []
+                    let merchantProducts = []
+
+                    for (let j = 0; j < orders[i].products.length; j++) {
+                        if (!merchants.includes(orders[i].products[j].merchantId)) {
+                            let merchantName = await Merchants.findOne({ _id: new  ObjectId(orders[i].products[j].merchantId) }).select({merchantName: 1})
+                            let merchant = {
+                                merchantId: orders[i].products[j].merchantId,
+                                merchantNumber: orders[i].products[j].merchantNumber,
+                                merchantName: merchantName.merchantName,
+                                merchantTotal: 0
+                            }
+                            merchants.push(merchant)
+
+
+                        }
+                    }
+                    console.log(merchants, "merchants");
+                    for (let k = 0; k < merchants.length; k++) {
+                        let merchantProduct = []
+                        for (let l = 0; l < orders[i].products.length; l++) {
+                            if (orders[i].products[l].merchantId === merchants[k].merchantId) {
+                                let newProduct = {
+                                    productId: orders[i].products[l].productId,
+                                    productName: orders[i].products[l].productName,
+                                    productPrice: orders[i].products[l].productPrice,
+                                    productQuantity: orders[i].products[l].productQuantity,
+                                    productTotal: orders[i].products[l].productTotal,
+                                
+                                }
+                                let merchant = {
+                                    merchantId: orders[i].products[l].merchantId,
+                                    merchantNumber: orders[i].products[l].merchantNumber,
+                                    merchantName: "",
+                                    products: newProduct
+                                }
+
+                                merchantProduct.push(merchant)
+                            }
+
+
+                        }
+                        // calculate merchant total
+                        let merchantTotal = 0
+                        merchantProduct.map((product) => {
+                            merchantTotal += parseInt(product.products.productTotal)
+                        })
+                        merchants[k].merchantTotal = merchantTotal
+
+                        console.log(merchantProduct, "merchantProduct ====>><<<<>>>>>");
+                        merchantProducts.push(merchantProduct)
+
+
+                       
+                       
+                    }
+                    console.log(merchantProducts, "merchantProducts********************************");
+
+                    
+                    newOrder = {
+                        orderNumber: orders[i].orderNumber,
+                        products: merchantProducts,
+                        customerName: orders[i].customerName,
+                        customerEmail: orders[i].customerEmail,
+                        customerPhone: orders[i].customerPhone,
+                        orderStatus: orders[i].orderStatus,
+                        totalOrderAmount: orders[i].totalOrderAmount,
+                        merchants: merchants
+                    }
+
+                    newOrders.push(newOrder)
+                    
+                }
+                
+               
+            
+            
+            
+                return res.status(200).json({ status: "SUCCESS", data: newOrders, pages: pages, currentPage: page, count: count });
+
+                
             } else {
                 let orders = await OrdersModel.aggregate(
                     [{
@@ -663,3 +686,40 @@ exports.doGetOrders = async (req, res) => {
     }
 
 }
+
+
+function groupOrdersByMerchant(orders) {
+    let groupedOrders = [];
+  
+    // Iterate through each order
+    orders.forEach(order => {
+      let merchantId = null;
+  
+      // Iterate through each product in the order to find the merchant ID
+      order.products.forEach(product => {
+        if (!merchantId) {
+          merchantId = product.merchantId;
+        }
+      });
+  
+      // Check if the merchant already exists in groupedOrders
+      let existingMerchantIndex = groupedOrders.findIndex(merchantOrder => merchantOrder.merchantId === merchantId);
+  
+      // If the merchant doesn't exist, add it
+      if (existingMerchantIndex === -1) {
+        groupedOrders.push({
+          merchantId: merchantId,
+          orderNumbers: [order.orderNumber],
+          merchantProducts: order.products,
+          merchantTotal: parseInt(order.orderAmount)
+        });
+      } else {
+        // If the merchant exists, update its orders and total
+        groupedOrders[existingMerchantIndex].orderNumbers.push(order.orderNumber);
+        groupedOrders[existingMerchantIndex].merchantProducts.push(...order.products);
+        groupedOrders[existingMerchantIndex].merchantTotal += parseInt(order.orderAmount);
+      }
+    });
+  
+    return groupedOrders;
+  }

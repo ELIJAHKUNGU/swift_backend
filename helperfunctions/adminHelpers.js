@@ -58,6 +58,7 @@ exports.doApproveRejectOrders = async (data, req, res) => {
     if (!order) {
         return res.status(400).json({ message: 'Invalid order number' });
     }
+    let updateData = { orderStatus: orderStatus,  };
     let updateOrder = await ordersModel.findOneAndUpdate({ orderNumber: orderNumber }, { orderStatus: orderStatus }, { new: true });
     return res.status(200).json({ message: 'Order updated successfully', result: updateOrder });
 }
