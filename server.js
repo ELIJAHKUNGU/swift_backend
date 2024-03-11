@@ -13,6 +13,7 @@ const categoryRoutes = require("./routes/categoryRoute");
 const merchantRoutes = require("./routes/merchantRoutes");
 const productsRouters = require("./routes/productRoutes");
 const ordersRoutes = require("./routes/ordersRoutes");
+const customerRoutes = require("./routes/customerRoutes");
 dotenv.config({ path: "./.env" });
 connectDB();
 
@@ -33,6 +34,8 @@ app.use('/', categoryRoutes);
 app.use('/', merchantRoutes);
 app.use('/', productsRouters);
 app.use('/', ordersRoutes);
+app.use('/', customerRoutes);
+
 
 
 

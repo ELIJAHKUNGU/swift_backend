@@ -12,7 +12,15 @@ const customerSchema = new mongoose.Schema({
     customerType:{type:String},
     customerNumber:{type:String},
     customerSequence : {type : Number, unique: true},
-    userId:{type:mongoose.Schema.Types.ObjectId, ref: 'user'}
+    userId:{type:mongoose.Schema.Types.ObjectId, ref: 'user'},
+    idCard:{type:String},
+    bankStatement:{type:String},
+    passsPort:{type:String},
+    letterEmpolyment:{type:String},
+    verifyAccount:{type:Boolean, default:false},
+    kycVerified:{type:Boolean, default:false},
+    limit:{type:Number, default:0},
+    verifyLimit:{type:Boolean, default:0},
 }, {
     timestamps: true
 });
