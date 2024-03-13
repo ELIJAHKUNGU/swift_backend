@@ -81,6 +81,14 @@ exports.doUploadKYCElements = async (req, res) => {
     const { idCard, bankStatement,passsPort, letterEmpolyment  } = req.body;
     let emptyFields = [];
     if (!idCard) {
+        // idCard: [
+        //     {
+        //         front: 'idCard is required'
+        //     },
+        //     {
+        //         back: 'idCard is required'
+        //     }
+        // ]
         emptyFields.push('idCard');
     }
     if (!bankStatement) {
@@ -98,6 +106,9 @@ exports.doUploadKYCElements = async (req, res) => {
     let customerData = await customer.findOne({_id:customerId});
     if (!customerData) {
         return res.status(400).json({ status:"Failed", message: `customer with id ${customerId} not found` });
+    }
+    if(idCard.length < 0) {
+        return res.status(400).json({ status:"Failed", message: 'Kindly provide the idCard' });
     }
 
     customerData.idCard = idCard;

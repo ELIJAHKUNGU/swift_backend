@@ -13,7 +13,7 @@ const customerSchema = new mongoose.Schema({
     customerNumber:{type:String},
     customerSequence : {type : Number, unique: true},
     userId:{type:mongoose.Schema.Types.ObjectId, ref: 'user'},
-    idCard:{type:String},
+    idCard: {type:Object},
     bankStatement:{type:String},
     passsPort:{type:String},
     letterEmpolyment:{type:String},

@@ -9,6 +9,7 @@ exports.checkOriginCalling = async (req, res, next) => {
         console.log(`Source ip address  ... ${ipAddress} `)
         // Get location information
         const location = geoip.lookup(ipAddress);
+        console.log(`location `, location)
         let country = location?.country
         // Print location details
         console.log('IP Address:', ipAddress);
