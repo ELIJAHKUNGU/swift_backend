@@ -157,3 +157,19 @@ exports.doVerifyAccount = async (req, res) => {
         });
     
 }
+
+exports.doGetCustomerInfo =  (req, res) => {
+    const {customerId} = req.query;
+
+    if (!customerId) {
+        return res.status(400).json({ status:"Failed", message: 'Kindly provide the customer Id' });
+    }
+    return customer.findOne({_id: new ObjectId(customerId)})
+        .then(result => {
+            return res.status(200).json({ status:"Success", message: 'Customer info retrieved successfully', result: result });
+        })
+        .catch(err => {
+            console.error("Error retrieving customer info:", err);
+            return res.status(400).json({ status:"Failed", message: 'Error retrieving customer info', err: err });
+        });
+}
