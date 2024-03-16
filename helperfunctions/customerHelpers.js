@@ -36,7 +36,7 @@ exports.doCreateCustomer = async (data, req, res) => {
         customerType: customerType,
         customerNumber: newCustomerNumber,
         customerSequence: newCustomerSequence,
-        userId:userId
+        userId: userId
     }
     let newCustomer = new customer(customerData);
     return newCustomer.save()
@@ -73,12 +73,12 @@ exports.doGetCustomerByCustomerId = async (customerId) => {
 
 exports.doUploadKYCElements = async (req, res) => {
     let customerId = req.id?.customerId;
-  
+
 
     if (!customerId) {
-        return res.status(400).json({status:"Failed", message: 'Kindly provide the customer Id' });
+        return res.status(400).json({ status: "Failed", message: 'Kindly provide the customer Id' });
     }
-    const { idCard, bankStatement,passsPort, letterEmpolyment  } = req.body;
+    const { idCard, bankStatement, passsPort, letterEmpolyment } = req.body;
     let emptyFields = [];
     if (!idCard) {
         // idCard: [
@@ -103,12 +103,12 @@ exports.doUploadKYCElements = async (req, res) => {
     if (emptyFields.length > 0) {
         return res.status(400).json({ message: `Kindly provide the following fields ${emptyFields.join(', ')}` });
     }
-    let customerData = await customer.findOne({_id:customerId});
+    let customerData = await customer.findOne({ _id: customerId });
     if (!customerData) {
-        return res.status(400).json({ status:"Failed", message: `customer with id ${customerId} not found` });
+        return res.status(400).json({ status: "Failed", message: `customer with id ${customerId} not found` });
     }
-    if(idCard.length < 0) {
-        return res.status(400).json({ status:"Failed", message: 'Kindly provide the idCard' });
+    if (idCard.length < 0) {
+        return res.status(400).json({ status: "Failed", message: 'Kindly provide the idCard' });
     }
 
     customerData.idCard = idCard;
@@ -117,13 +117,13 @@ exports.doUploadKYCElements = async (req, res) => {
     customerData.letterEmpolyment = letterEmpolyment;
     return customerData.save()
         .then(result => {
-            return res.status(200).json({ status:"Success", message: 'KYC elements uploaded successfully', result: result });
+            return res.status(200).json({ status: "Success", message: 'KYC elements uploaded successfully', result: result });
         })
         .catch(err => {
             console.error("Error uploading KYC elements:", err);
-            return res.status(400).json({ status:"Failed", message: 'Error uploading KYC elements', err: err });
+            return res.status(400).json({ status: "Failed", message: 'Error uploading KYC elements', err: err });
         });
-   
+
 
 
 
@@ -131,14 +131,14 @@ exports.doUploadKYCElements = async (req, res) => {
 }
 
 exports.doVerifyAccount = async (req, res) => {
-    const { verifyAccount , limit, customerId} = req.body;
+    const { verifyAccount, limit, customerId } = req.body;
 
     if (!customerId) {
-        return res.status(400).json({ status:"Failed", message: 'Kindly provide the customer Id' });
+        return res.status(400).json({ status: "Failed", message: 'Kindly provide the customer Id' });
     }
-    let customerData = await customer.findOne({_id: new ObjectId(customerId)})
+    let customerData = await customer.findOne({ _id: new ObjectId(customerId) })
     if (!customerData) {
-        return res.status(400).json({ status:"Failed", message: `customer with id ${customerId} not found` });
+        return res.status(400).json({ status: "Failed", message: `customer with id ${customerId} not found` });
     }
     if (verifyAccount) {
         customerData.verifyAccount = verifyAccount;
@@ -149,27 +149,75 @@ exports.doVerifyAccount = async (req, res) => {
     }
     return customerData.save()
         .then(result => {
-            return res.status(200).json({ status:"Success", message: 'Account verified successfully', result: result });
+            return res.status(200).json({ status: "Success", message: 'Account verified successfully', result: result });
         })
         .catch(err => {
             console.error("Error verifying account:", err);
-            return res.status(400).json({ status:"Failed", message: 'Error verifying account', err: err });
+            return res.status(400).json({ status: "Failed", message: 'Error verifying account', err: err });
         });
-    
+
 }
 
-exports.doGetCustomerInfo =  (req, res) => {
-    const {customerId} = req.query;
+exports.doGetCustomerInfo = (req, res) => {
+    const { customerId } = req.query;
 
     if (!customerId) {
-        return res.status(400).json({ status:"Failed", message: 'Kindly provide the customer Id' });
+        return res.status(400).json({ status: "Failed", message: 'Kindly provide the customer Id' });
     }
-    return customer.findOne({_id: new ObjectId(customerId)})
+    return customer.findOne({ _id: new ObjectId(customerId) })
         .then(result => {
-            return res.status(200).json({ status:"Success", message: 'Customer info retrieved successfully', result: result });
+            return res.status(200).json({ status: "Success", message: 'Customer info retrieved successfully', result: result });
         })
         .catch(err => {
             console.error("Error retrieving customer info:", err);
-            return res.status(400).json({ status:"Failed", message: 'Error retrieving customer info', err: err });
+            return res.status(400).json({ status: "Failed", message: 'Error retrieving customer info', err: err });
         });
+}
+
+exports.doGetCustomers = async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+
+
+    const customers = await customer.aggregate([
+        {
+            $match: {
+                $or: [
+                    { customerName: { $regex: search, $options: 'i' } },
+                    { customerEmail: { $regex: search, $options: 'i' } },
+                    { customerPhone: { $regex: search, $options: 'i' } },
+                    { customerNumber: { $regex: search, $options: 'i' } },
+                ]
+            }
+        },
+        { $Sort: { createdAt: -1 } },
+        { $skip: (page - 1) * limit },
+        { $limit: limit },
+        {$project : {
+            customerName: 1,
+            customerEmail: 1,
+            customerPhone: 1,
+            customerNumber: 1,
+            customerType: 1,
+            customerAddress: 1,
+            customerCity: 1,
+            customerState: 1,
+            customerZipCode: 1,
+            paymentType: 1,
+            verifyAccount: 1,
+            limit: 1,
+            verifyLimit: 1,
+            idCard: 1,
+            bankStatement: 1,
+            passsPort: 1,
+            letterEmpolyment: 1,
+            createdAt: 1,
+            updatedAt: 1
+
+        }}
+    ]);
+
+    return res.status(200).json({ status: "Success", message: 'Customers retrieved successfully', data: customers });
+
 }
